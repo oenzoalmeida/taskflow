@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow | Gerenciador de Tarefas</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<main class="container">
+
+    <section class="task-app">
+
+        <div class="header">
+            <div>
+                <span class="tag">ORGANIZAÇÃO</span>
+                <h1>TaskFlow</h1>
+                <p>Organize suas tarefas e acompanhe seu progresso.</p>
+            </div>
+
+            <div class="progress-box">
+                <span id="progressNumber">0%</span>
+                <small>concluído</small>
+            </div>
+        </div>
+
+        <form id="taskForm" class="task-form">
+
+            <label for="taskInput"></label><input
+                    type="text"
+                    id="taskInput"
+                    placeholder="Digite uma nova tarefa..."
+                    autocomplete="off"
+            >
+
+            <button type="submit">
+                Adicionar
+            </button>
+
+        </form>
+
+        <div class="filters">
+
+            <button class="filter active" data-filter="all">
+                Todas
+            </button>
+
+            <button class="filter" data-filter="pending">
+                Pendentes
+            </button>
+
+            <button class="filter" data-filter="completed">
+                Concluídas
+            </button>
+
+        </div>
+
+        <div class="task-info">
+
+                <span>
+                    <strong id="totalTasks">0</strong>
+                    tarefas
+                </span>
+
+            <span>
+                    <strong id="completedTasks">0</strong>
+                    concluídas
+                </span>
+
+        </div>
+
+        <ul id="taskList" class="task-list"></ul>
+
+        <div id="emptyState" class="empty-state">
+
+            <div class="empty-icon">✓</div>
+
+            <h2>Nenhuma tarefa por aqui</h2>
+
+            <p>
+                Adicione uma tarefa para começar.
+            </p>
+
+        </div>
+
+    </section>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>

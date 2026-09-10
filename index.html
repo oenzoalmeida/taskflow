@@ -1,104 +1,75 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow | Gerenciador de Tarefas</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-    >
-
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow | Gerenciador de Tarefas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
 <main class="container">
+  <section id="authView" class="auth-card">
+    <span class="tag">TASKFLOW</span>
+    <h1>Entre na sua conta</h1>
+    <p class="muted">Suas tarefas ficam vinculadas ao seu usuário.</p>
+    <div class="auth-tabs">
+      <button id="loginTab" class="filter active" type="button">Entrar</button>
+      <button id="registerTab" class="filter" type="button">Criar conta</button>
+    </div>
+    <form id="authForm" class="auth-form">
+      <input id="nameInput" class="hidden" type="text" placeholder="Seu nome" autocomplete="name">
+      <input id="emailInput" type="email" placeholder="E-mail" autocomplete="email" required>
+      <input id="passwordInput" type="password" placeholder="Senha" autocomplete="current-password" required>
+      <button id="authSubmit" type="submit">Entrar</button>
+    </form>
+    <p id="authMessage" class="message"></p>
+  </section>
 
-    <section class="task-app">
+  <section id="taskView" class="task-app hidden">
+    <div class="topbar">
+      <div>
+        <span class="tag">ORGANIZAÇÃO</span>
+        <h1>TaskFlow</h1>
+        <p id="welcomeText">Organize suas tarefas e acompanhe seu progresso.</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="adminButton" class="secondary hidden" type="button">Admin</button>
+        <button id="logoutButton" class="secondary" type="button">Sair</button>
+      </div>
+    </div>
 
-        <div class="header">
-            <div>
-                <span class="tag">ORGANIZAÇÃO</span>
-                <h1>TaskFlow</h1>
-                <p>Organize suas tarefas e acompanhe seu progresso.</p>
-            </div>
+    <div id="userArea">
+      <div class="header">
+        <div><p>Seu painel pessoal</p></div>
+        <div class="progress-box"><span id="progressNumber">0%</span><small>concluído</small></div>
+      </div>
+      <form id="taskForm" class="task-form">
+        <input type="text" id="taskInput" placeholder="Digite uma nova tarefa..." autocomplete="off" required>
+        <button type="submit">Adicionar</button>
+      </form>
+      <div class="filters">
+        <button class="filter active" data-filter="all" type="button">Todas</button>
+        <button class="filter" data-filter="pending" type="button">Pendentes</button>
+        <button class="filter" data-filter="completed" type="button">Concluídas</button>
+      </div>
+      <div class="task-info">
+        <span><strong id="totalTasks">0</strong> tarefas</span>
+        <span><strong id="completedTasks">0</strong> concluídas</span>
+      </div>
+      <ul id="taskList" class="task-list"></ul>
+      <div id="emptyState" class="empty-state"><div class="empty-icon">✓</div><h2>Nenhuma tarefa por aqui</h2><p>Adicione uma tarefa para começar.</p></div>
+    </div>
 
-            <div class="progress-box">
-                <span id="progressNumber">0%</span>
-                <small>concluído</small>
-            </div>
-        </div>
-
-        <form id="taskForm" class="task-form">
-
-            <label for="taskInput"></label><input
-                    type="text"
-                    id="taskInput"
-                    placeholder="Digite uma nova tarefa..."
-                    autocomplete="off"
-            >
-
-            <button type="submit">
-                Adicionar
-            </button>
-
-        </form>
-
-        <div class="filters">
-
-            <button class="filter active" data-filter="all">
-                Todas
-            </button>
-
-            <button class="filter" data-filter="pending">
-                Pendentes
-            </button>
-
-            <button class="filter" data-filter="completed">
-                Concluídas
-            </button>
-
-        </div>
-
-        <div class="task-info">
-
-                <span>
-                    <strong id="totalTasks">0</strong>
-                    tarefas
-                </span>
-
-            <span>
-                    <strong id="completedTasks">0</strong>
-                    concluídas
-                </span>
-
-        </div>
-
-        <ul id="taskList" class="task-list"></ul>
-
-        <div id="emptyState" class="empty-state">
-
-            <div class="empty-icon">✓</div>
-
-            <h2>Nenhuma tarefa por aqui</h2>
-
-            <p>
-                Adicione uma tarefa para começar.
-            </p>
-
-        </div>
-
-    </section>
-
+    <div id="adminArea" class="hidden">
+      <div class="admin-heading"><div><span class="tag">ADMINISTRAÇÃO</span><h2>Painel administrativo</h2></div><button id="backToTasks" class="secondary" type="button">Minhas tarefas</button></div>
+      <div id="adminStats" class="stats-grid"></div>
+      <div class="admin-table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Ação</th></tr></thead><tbody id="usersTable"></tbody></table></div>
+    </div>
+  </section>
 </main>
-
 <script src="script.js"></script>
-
 </body>
 </html>

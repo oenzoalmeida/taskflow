@@ -1,46 +1,60 @@
 # TaskFlow
 
-Gerenciador de tarefas desenvolvido como projeto de estudo para colocar em prática conceitos de desenvolvimento web utilizando HTML, CSS e JavaScript.
+Gerenciador de tarefas full stack com autenticação, dados por usuário e painel administrativo.
 
 ## Demonstração
 
-[Acessar o TaskFlow online](https://taskflow-dcl5.onrender.com)
-
-## Sobre o projeto
-
-O TaskFlow é uma aplicação web para organização de tarefas, permitindo acompanhar atividades pendentes e concluídas de forma simples e intuitiva.
-
-O projeto foi desenvolvido com foco na integração entre estrutura, estilização e interatividade, aplicando na prática conceitos fundamentais do desenvolvimento front-end.
+**Aplicação:** https://taskflow-dcl5.onrender.com
 
 ## Funcionalidades
 
-- Adicionar novas tarefas
-- Marcar tarefas como concluídas
-- Excluir tarefas
-- Filtrar entre todas, pendentes e concluídas
-- Acompanhar a quantidade de tarefas
-- Visualizar o percentual de tarefas concluídas
-- Interface responsiva para diferentes tamanhos de tela
+- Cadastro e login de usuários
+- Sessão autenticada por cookie HttpOnly
+- Tarefas separadas por usuário
+- Adicionar, concluir, excluir e filtrar tarefas
+- Indicador de progresso
+- Painel administrativo separado
+- Gestão de usuários ativos/inativos
+- Visão geral de usuários e tarefas
+- Interface responsiva
 
-## Tecnologias utilizadas
+## Perfis de acesso
 
+- **Usuário:** acessa apenas as próprias tarefas.
+- **Administrador:** possui acesso ao painel administrativo e à gestão de usuários.
+
+## Tecnologias
+
+### Frontend
 - HTML5
 - CSS3
 - JavaScript
 
-## Estrutura do projeto
+### Backend
+- Node.js
+- Express
+- PostgreSQL
+- JWT
+- BCrypt
+
+### Infraestrutura
+- Render — frontend e backend
+- Neon — PostgreSQL
+
+## Estrutura
 
 ```text
 TaskFlow/
+├── backend/
+│   ├── package.json
+│   └── server.js
 ├── index.html
 ├── style.css
 ├── script.js
 └── README.md
 ```
 
-## Objetivo
-
-Este projeto foi desenvolvido como parte dos meus estudos em desenvolvimento web, com o objetivo de praticar HTML, CSS e JavaScript por meio da construção de uma aplicação funcional.
+Nenhuma senha de produção é armazenada no repositório.
 
 ## Autor
 

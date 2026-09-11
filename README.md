@@ -23,6 +23,14 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 - **Usuário:** acessa apenas as próprias tarefas.
 - **Administrador:** possui acesso ao painel administrativo e à gestão de usuários.
 
+## Credenciais demo
+
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Usuário | `demo@taskflow.app` | `TaskFlow@2026` |
+
+> A conta de administrador do deploy é provisionada por variáveis de ambiente e não é pública.
+
 ## Tecnologias
 
 ### Frontend

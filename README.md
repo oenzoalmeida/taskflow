@@ -28,8 +28,7 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 | Perfil | E-mail | Senha |
 |---|---|---|
 | Usuário | `demo@taskflow.app` | `TaskFlow@2026` |
-
-> A conta de administrador do deploy é provisionada por variáveis de ambiente e não é pública.
+| Administrador | `admin@taskflow.app` | `Admin@Portfolio2026` |
 
 ## Tecnologias
 

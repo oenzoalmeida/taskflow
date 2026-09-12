@@ -124,6 +124,12 @@ app.delete('/api/tasks/:id', requireAuth, async (req, res) => {
   res.status(204).end();
 });
 
+app.delete('/api/account', requireAuth, async (req, res) => {
+  await pool.query('DELETE FROM tasks WHERE user_id=$1', [req.user.sub]);
+  await pool.query('DELETE FROM users WHERE id=$1', [req.user.sub]);
+  res.clearCookie('taskflow_session', { ...cookieOptions, maxAge: undefined }).status(204).end();
+});
+
 app.get('/api/admin/overview', requireAuth, requireAdmin, async (_req, res) => {
   const [users, tasks] = await Promise.all([
     pool.query("SELECT COUNT(*)::int total, COUNT(*) FILTER (WHERE active)::int active FROM users WHERE role='USER'"),

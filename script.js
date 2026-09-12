@@ -25,6 +25,7 @@ const totalTasksElement = $('totalTasks');
 const completedTasksElement = $('completedTasks');
 const progressNumber = $('progressNumber');
 const filterButtons = document.querySelectorAll('.filter[data-filter]');
+const deleteAccountButton = $('deleteAccountButton');
 
 let mode = 'login';
 let user = null;
@@ -137,6 +138,8 @@ function renderTasks() {
     const checkbox = document.createElement('button');
     checkbox.className = 'task-checkbox';
     checkbox.textContent = task.completed ? '✓' : '';
+    checkbox.setAttribute('aria-label', task.completed ? 'Marcar tarefa como pendente' : 'Marcar tarefa como concluída');
+    checkbox.setAttribute('aria-pressed', String(task.completed));
     checkbox.addEventListener('click', () => toggleTask(task.id, task.completed));
     const text = document.createElement('span');
     text.className = 'task-text';
@@ -144,6 +147,7 @@ function renderTasks() {
     const remove = document.createElement('button');
     remove.className = 'delete-button';
     remove.textContent = 'Excluir';
+    remove.setAttribute('aria-label', `Excluir tarefa: ${task.text}`);
     remove.addEventListener('click', () => deleteTask(task.id));
     li.append(checkbox, text, remove);
     taskList.appendChild(li);
@@ -156,11 +160,30 @@ function renderTasks() {
 }
 
 filterButtons.forEach(button => button.addEventListener('click', () => {
-  filterButtons.forEach(item => item.classList.remove('active'));
+  filterButtons.forEach(item => {
+    item.classList.remove('active');
+    item.setAttribute('aria-pressed', 'false');
+  });
   button.classList.add('active');
+  button.setAttribute('aria-pressed', 'true');
   currentFilter = button.dataset.filter;
   renderTasks();
 }));
+
+deleteAccountButton.addEventListener('click', async () => {
+  if (!confirm('Excluir sua conta e todas as suas tarefas? Esta ação é definitiva.')) return;
+  if (!confirm('Confirma novamente? Os dados não poderão ser recuperados.')) return;
+  try {
+    await api('/api/account', { method: 'DELETE' });
+  } catch {}
+  user = null;
+  tasks = [];
+  authView.classList.remove('hidden');
+  taskView.classList.add('hidden');
+  emailInput.value = '';
+  passwordInput.value = '';
+  authMessage.textContent = 'Conta excluída definitivamente.';
+});
 
 adminButton.addEventListener('click', async () => {
   userArea.classList.add('hidden');

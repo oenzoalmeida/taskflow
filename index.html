@@ -20,12 +20,16 @@
       <button id="registerTab" class="filter" type="button">Criar conta</button>
     </div>
     <form id="authForm" class="auth-form">
+      <label class="visually-hidden" for="nameInput">Seu nome</label>
       <input id="nameInput" class="hidden" type="text" placeholder="Seu nome" autocomplete="name">
+      <label class="visually-hidden" for="emailInput">E-mail</label>
       <input id="emailInput" type="email" placeholder="E-mail" autocomplete="email" required>
+      <label class="visually-hidden" for="passwordInput">Senha</label>
       <input id="passwordInput" type="password" placeholder="Senha" autocomplete="current-password" required>
       <button id="authSubmit" type="submit">Entrar</button>
     </form>
-    <p id="authMessage" class="message"></p>
+    <p id="privacyNotice" class="privacy-notice hidden">Seus dados são usados apenas para autenticação e funcionamento do serviço. Saiba mais na <a href="privacidade.html">Política de Privacidade</a>.</p>
+    <p id="authMessage" class="message" aria-live="polite"></p>
   </section>
 
   <section id="taskView" class="task-app hidden">
@@ -38,6 +42,7 @@
       <div class="topbar-actions">
         <button id="adminButton" class="secondary hidden" type="button">Admin</button>
         <button id="logoutButton" class="secondary" type="button">Sair</button>
+        <button id="deleteAccountButton" class="danger-link" type="button">Excluir conta</button>
       </div>
     </div>
 
@@ -47,13 +52,14 @@
         <div class="progress-box"><span id="progressNumber">0%</span><small>concluído</small></div>
       </div>
       <form id="taskForm" class="task-form">
+        <label class="visually-hidden" for="taskInput">Nova tarefa</label>
         <input type="text" id="taskInput" placeholder="Digite uma nova tarefa..." autocomplete="off" required>
         <button type="submit">Adicionar</button>
       </form>
-      <div class="filters">
-        <button class="filter active" data-filter="all" type="button">Todas</button>
-        <button class="filter" data-filter="pending" type="button">Pendentes</button>
-        <button class="filter" data-filter="completed" type="button">Concluídas</button>
+      <div class="filters" role="group" aria-label="Filtrar tarefas">
+        <button class="filter active" data-filter="all" type="button" aria-pressed="true">Todas</button>
+        <button class="filter" data-filter="pending" type="button" aria-pressed="false">Pendentes</button>
+        <button class="filter" data-filter="completed" type="button" aria-pressed="false">Concluídas</button>
       </div>
       <div class="task-info">
         <span><strong id="totalTasks">0</strong> tarefas</span>
@@ -70,6 +76,11 @@
     </div>
   </section>
 </main>
+<footer class="app-footer">
+  <span>TaskFlow</span>
+  <a href="termos.html">Termos de Uso</a>
+  <a href="privacidade.html">Política de Privacidade</a>
+</footer>
 <script src="script.js"></script>
 </body>
 </html>

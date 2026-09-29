@@ -8,6 +8,8 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 
 ## Credencial demo
 
+> **Nota:** as credenciais abaixo são públicas para fins de demonstração; os dados da conta demo podem ser alterados por outros visitantes.
+
 | Perfil | E-mail | Senha |
 |---|---|---|
 | Usuário | `demo@taskflow.app` | `TaskFlow@2026` |

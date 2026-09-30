@@ -69,14 +69,34 @@ O CI verifica a sintaxe dos arquivos JavaScript (`node --check`) e a integridade
 
 ## Deploy
 
-- **Frontend:** site estático no Render.
-- **Backend:** serviço Node no Render com variáveis `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL` e (opcional) `BOOTSTRAP_ENABLED`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `USER_EMAIL`, `USER_PASSWORD` para provisionar contas internas.
-- **Banco:** PostgreSQL gerenciado no Neon.
+A infraestrutura no Render está descrita no Blueprint [`render.yaml`](render.yaml), que espelha os serviços como já existem (criados manualmente no dashboard).
+
+| Serviço | Tipo | URL |
+|---|---|---|
+| `taskflow` | Site estático (raiz do repo) | https://taskflow-dcl5.onrender.com |
+| `taskflow-backend` | Web service Node (`backend/`) | https://taskflow-backend-6syn.onrender.com |
+
+Banco de dados: PostgreSQL gerenciado no Neon (externo ao Render).
+
+**Como colocar a `main` no ar** (serviços já existentes no dashboard):
+
+1. Render Dashboard → serviço `taskflow-backend` → **Manual Deploy** → **Deploy latest commit**.
+2. Para deploys automáticos a cada push na `main`: no mesmo serviço, **Settings** → **Build & Deploy** → ative **Auto-Deploy** (o `render.yaml` já declara `autoDeployTrigger: commit` para quando o Blueprint for aplicado).
+3. Repita para o site estático `taskflow` (o frontend só muda quando há alteração de UI).
+
+> **Atenção:** aplicar o Blueprint no dashboard ("New → Blueprint") pode **criar serviços novos** em vez de adotar os existentes — nesse caso não aponte o DNS/domínio público para os novos até validar, e remova os duplicados depois. Para apenas publicar a `main`, o caminho seguro é o passo 1.
+
+**Variáveis de ambiente do backend** (valores configurados só no dashboard; segredos ficam com `sync: false` no `render.yaml`): `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `NODE_ENV`, `RATE_LIMIT_MAX`, `RATE_LIMIT_WINDOW_MS`, `PORT` (definida pelo Render) e, opcionais, `BOOTSTRAP_ENABLED`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `USER_EMAIL`, `USER_PASSWORD` (provisionam as contas demo no boot).
+
+**Checklist pós-deploy:**
+
+- [ ] `GET https://taskflow-backend-6syn.onrender.com/health` responde **200**
+- [ ] 11 logins seguidos com senha errada: os 10 primeiros → **401**, o 11º → **429** (rate limit ativo na build nova)
 
 ## Limitações conhecidas
 
 - Sem verificação de e-mail e sem recuperação de senha.
-- Sem rate limiting nas rotas de autenticação.
+- O rate limit de autenticação é in-memory por instância: reinicia a cada deploy/restart e não é compartilhado entre réplicas.
 - O título de uma tarefa não é editável após a criação.
 
 ## Autor

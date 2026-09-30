@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  validate:
+  frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,3 +21,81 @@ jobs:
         run: |
           test -f index.html
           test -f style.css
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: taskflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/taskflow_test
+      JWT_SECRET: ci-only-secret
+      PORT: '3000'
+      NODE_ENV: test
+      RATE_LIMIT_MAX: '10'
+      RATE_LIMIT_WINDOW_MS: '60000'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Check backend syntax
+        working-directory: backend
+        run: node --check server.js
+      - name: Create schema
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS users (id serial PRIMARY KEY, name text NOT NULL, email text NOT NULL UNIQUE, password_hash text NOT NULL, role text NOT NULL DEFAULT 'USER', active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now());"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS tasks (id serial PRIMARY KEY, user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE, title text NOT NULL, completed boolean NOT NULL DEFAULT false, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());"
+      - name: Start server
+        working-directory: backend
+        run: |
+          node server.js > server.log 2>&1 &
+          echo $! > server.pid
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/health > /dev/null; then
+              echo "server is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "server failed to start"; cat server.log
+          exit 1
+      - name: Smoke tests (health + 429 rate limit)
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/health)
+          echo "health -> $code"
+          test "$code" = "200"
+          for i in $(seq 1 10); do
+            c=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:3000/api/auth/login \
+              -H 'Content-Type: application/json' -d '{"email":"nobody@example.com","password":"wrong-password"}')
+            echo "login $i -> $c"
+            test "$c" = "401"
+          done
+          c=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:3000/api/auth/login \
+            -H 'Content-Type: application/json' -d '{"email":"nobody@example.com","password":"wrong-password"}')
+          echo "login 11 (deve ser 429) -> $c"
+          test "$c" = "429"
+          headers=$(curl -s -D - -o /dev/null -X POST http://localhost:3000/api/auth/login \
+            -H 'Content-Type: application/json' -d '{"email":"nobody@example.com","password":"wrong-password"}')
+          echo "$headers" | grep -i '^retry-after:'
+      - name: Stop server
+        if: always()
+        working-directory: backend
+        run: |
+          if [ -f server.pid ]; then kill "$(cat server.pid)" 2>/dev/null || true; fi

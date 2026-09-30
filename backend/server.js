@@ -17,9 +17,34 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
 });
 
+app.set('trust proxy', 1); // atrás do proxy do Render, req.ip reflete o cliente real
 app.use(cors({ origin: frontendUrl, credentials: true }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
+
+// Rate limit in-memory por IP (janela fixa) para as rotas de autenticação.
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 10);
+const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 60000);
+const authHits = new Map();
+
+function authRateLimit(req, res, next) {
+  const now = Date.now();
+  const key = req.ip || req.socket?.remoteAddress || 'unknown';
+  if (authHits.size > 5000) {
+    for (const [k, v] of authHits) if (now >= v.resetAt) authHits.delete(k);
+  }
+  const entry = authHits.get(key);
+  if (!entry || now >= entry.resetAt) {
+    authHits.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return next();
+  }
+  entry.count += 1;
+  if (entry.count > RATE_LIMIT_MAX) {
+    res.set('Retry-After', String(Math.max(1, Math.ceil((entry.resetAt - now) / 1000))));
+    return res.status(429).json({ error: 'Muitas tentativas. Tente novamente em instantes.' });
+  }
+  next();
+}
 
 const cookieOptions = {
   httpOnly: true,
@@ -51,7 +76,7 @@ function requireAdmin(req, res, next) {
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'taskflow' }));
 
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authRateLimit, async (req, res) => {
   const name = String(req.body?.name || '').trim();
   const email = String(req.body?.email || '').trim().toLowerCase();
   const password = String(req.body?.password || '');
@@ -74,16 +99,22 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authRateLimit, async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   const password = String(req.body?.password || '');
-  const { rows } = await pool.query('SELECT * FROM users WHERE lower(email)=lower($1) LIMIT 1', [email]);
-  const user = rows[0];
-  if (!user || !user.active || !(await bcrypt.compare(password, user.password_hash))) {
-    return res.status(401).json({ error: 'E-mail ou senha inválidos' });
+  try {
+    const { rows } = await pool.query('SELECT * FROM users WHERE lower(email)=lower($1) LIMIT 1', [email]);
+    const user = rows[0];
+    if (!user || !user.active || !(await bcrypt.compare(password, user.password_hash))) {
+      return res.status(401).json({ error: 'E-mail ou senha inválidos' });
+    }
+    const safeUser = { id: user.id, name: user.name, email: user.email, role: user.role, active: user.active };
+    res.cookie('taskflow_session', signUser(safeUser), cookieOptions).json({ user: safeUser });
+  } catch (err) {
+    // Erro de DB/inesperado não pode derrubar o processo com unhandled rejection.
+    console.error('login error:', err);
+    res.status(500).json({ error: 'Erro interno ao autenticar. Tente novamente.' });
   }
-  const safeUser = { id: user.id, name: user.name, email: user.email, role: user.role, active: user.active };
-  res.cookie('taskflow_session', signUser(safeUser), cookieOptions).json({ user: safeUser });
 });
 
 app.post('/api/auth/logout', (_req, res) => {

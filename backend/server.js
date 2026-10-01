@@ -8,7 +8,11 @@ import pg from 'pg';
 const { Pool } = pg;
 const app = express();
 const port = process.env.PORT || 10000;
+// FRONTEND_URL aceita uma ou mais origens separadas por vírgula (transição
+// Render -> Cloudflare Pages). Com um único valor (ou o default), o
+// comportamento permanece idêntico ao anterior (origin fixa).
 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5500';
+const frontendOrigins = frontendUrl.split(',').map(origin => origin.trim()).filter(Boolean);
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error('JWT_SECRET is required');
 
@@ -18,7 +22,7 @@ const pool = new Pool({
 });
 
 app.set('trust proxy', 1); // atrás do proxy do Render, req.ip reflete o cliente real
-app.use(cors({ origin: frontendUrl, credentials: true }));
+app.use(cors({ origin: frontendOrigins.length > 1 ? frontendOrigins : frontendUrl, credentials: true }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 

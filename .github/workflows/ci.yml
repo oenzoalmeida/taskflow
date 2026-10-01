@@ -45,6 +45,7 @@ jobs:
       NODE_ENV: test
       RATE_LIMIT_MAX: '10'
       RATE_LIMIT_WINDOW_MS: '60000'
+      FRONTEND_URL: 'https://taskflow-dcl5.onrender.com,https://taskflow.pages.dev'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -94,6 +95,25 @@ jobs:
           headers=$(curl -s -D - -o /dev/null -X POST http://localhost:3000/api/auth/login \
             -H 'Content-Type: application/json' -d '{"email":"nobody@example.com","password":"wrong-password"}')
           echo "$headers" | grep -i '^retry-after:'
+      - name: Smoke CORS multi-origin (reflete origem da lista, sem wildcard)
+        run: |
+          for origin in https://taskflow-dcl5.onrender.com https://taskflow.pages.dev; do
+            acao=$(curl -s -D - -o /dev/null http://localhost:3000/health -H "Origin: $origin" | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
+            echo "Origin $origin -> Access-Control-Allow-Origin: $acao"
+            test "$acao" = "$origin"
+          done
+          acao=$(curl -s -D - -o /dev/null http://localhost:3000/health -H 'Origin: https://origem-nao-autorizada.example.com' | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
+          echo "Origem fora da lista -> Access-Control-Allow-Origin: '$acao'"
+          test -z "$acao"
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS http://localhost:3000/api/tasks \
+            -H 'Origin: https://taskflow.pages.dev' \
+            -H 'Access-Control-Request-Method: GET')
+          acao=$(curl -s -D - -o /dev/null -X OPTIONS http://localhost:3000/api/tasks \
+            -H 'Origin: https://taskflow.pages.dev' \
+            -H 'Access-Control-Request-Method: GET' | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
+          echo "Preflight OPTIONS (pages.dev) -> $code, Access-Control-Allow-Origin: $acao"
+          test "$code" = "204"
+          test "$acao" = "https://taskflow.pages.dev"
       - name: Stop server
         if: always()
         working-directory: backend

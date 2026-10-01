@@ -102,19 +102,25 @@ serviço acordar. Nada no Render é apagado nesta migração.
    - **Build output directory:** `/` (raiz do repositório)
 4. *Save and Deploy*. O front sobe em `https://taskflow.pages.dev`.
 
-### CORS do backend quando o novo front estiver no ar
+### CORS do backend durante o cutover (Render + Cloudflare Pages no ar)
 
-O backend aceita uma única origem em `FRONTEND_URL` (Render → serviço do backend → Environment).
-Quando o front do Pages estiver no ar e validado, atualize:
+O backend aceita `FRONTEND_URL` com **uma única origem** (comportamento original) ou com uma
+**lista de origens separadas por vírgula**. Para o período de transição, com o front antigo no
+Render e o novo no Cloudflare Pages simultaneamente no ar, configure as duas origens
+(Render → serviço do backend → Environment):
 
 ```text
-FRONTEND_URL=https://taskflow.pages.dev
+FRONTEND_URL=https://taskflow-dcl5.onrender.com,https://taskflow.pages.dev
 ```
 
-Atenção: como `FRONTEND_URL` aceita uma só origem, trocar o valor faz o site atual
-(`taskflow-dcl5.onrender.com`) parar de funcionar (bloqueio de CORS). Faça a troca no momento do
-cutover, ou ajuste o código do backend para aceitar uma lista de origens se quiser período de
-transição com os dois sites no ar.
+- Com a lista, a resposta CORS reflete a origem da requisição quando ela está na lista (nunca
+  `*`, pois os endpoints usam cookies com `credentials: true`). Origem fora da lista não recebe
+  cabeçalho `Access-Control-Allow-Origin`.
+- Com um único valor em `FRONTEND_URL`, o comportamento é exatamente o mesmo de antes
+  (origin fixa).
+- Cookies não mudam: `SameSite=None; Secure` continua igual para as duas origens.
+- Após o cutover (front do Render desativado), deixe apenas
+  `FRONTEND_URL=https://taskflow.pages.dev`.
 
 ## Limitações conhecidas
 

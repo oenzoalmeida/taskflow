@@ -1,0 +1,28 @@
+name: Deploy Frontend (Firebase Hosting)
+
+# Deploy manual apenas: não altera o deploy atual do Render.
+# Requer o secret FIREBASE_SERVICE_ACCOUNT (JSON da service account com papel
+# "Firebase Hosting Admin") configurado no repositório.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Deploy to Firebase Hosting
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          npx --yes firebase-tools@latest deploy --only hosting --project taskflow --non-interactive

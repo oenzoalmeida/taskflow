@@ -25,4 +25,4 @@ jobs:
         run: |
           echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
-          npx --yes firebase-tools@latest deploy --only hosting --project taskflow --non-interactive
+          npx --yes firebase-tools@latest deploy --only hosting --project oenzoa-taskflow --non-interactive

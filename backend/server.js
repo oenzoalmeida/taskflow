@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pg from 'pg';
+import { pathToFileURL } from 'node:url';
 
 const { Pool } = pg;
 const app = express();
@@ -202,6 +203,18 @@ async function bootstrapDemoUsers() {
   console.log('TaskFlow bootstrap completed');
 }
 
-bootstrapDemoUsers()
-  .then(() => app.listen(port, '0.0.0.0', () => console.log(`TaskFlow backend listening on ${port}`)))
-  .catch(err => { console.error(err); process.exit(1); });
+export default app;
+
+// O servidor só sobe quando o arquivo é executado diretamente (node server.js —
+// modo Render/local). Detecção pela comparação canônica entre import.meta.url e
+// process.argv[1] via pathToFileURL (padrão do Node para "main module" em ESM,
+// portável entre SOs). Quando o módulo é apenas importado — caso do handler
+// serverless api/index.js na Vercel — nada escuta porta; o app só é exportado.
+const isDirectRun = typeof process.argv[1] === 'string'
+  && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  bootstrapDemoUsers()
+    .then(() => app.listen(port, '0.0.0.0', () => console.log(`TaskFlow backend listening on ${port}`)))
+    .catch(err => { console.error(err); process.exit(1); });
+}

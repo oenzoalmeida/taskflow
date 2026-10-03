@@ -7,3 +7,6 @@ npm-debug.log*
 .idea/
 .vscode/
 .DS_Store
+
+# Local Netlify folder
+.netlify

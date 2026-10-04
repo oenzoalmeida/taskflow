@@ -1,0 +1,55 @@
+# Render Blueprint — TaskFlow
+# Descreve a infraestrutura como ela já existe hoje no Render (serviços criados
+# manualmente no dashboard). Nada aqui altera produção por si só: o Blueprint só
+# tem efeito se o dono aplicá-lo no dashboard ("New > Blueprint"), e nesse caso o
+# Render pode CRIAR SERVIÇOS NOVOS em vez de adotar os existentes — para apenas
+# atualizar o código da main, use Manual Deploy / Auto-Deploy no serviço atual
+# (veja a seção "Deploy" do README).
+# Segredos ficam com `sync: false`: o Render solicita os valores na hora do apply
+# e eles nunca são versionados neste arquivo.
+services:
+  # Frontend — site estático servido da raiz do repositório (index.html, style.css, script.js).
+  - type: web
+    name: taskflow
+    runtime: static
+    branch: main
+    autoDeployTrigger: commit
+    staticPublishPath: .
+
+  # Backend — API Node/Express (código em backend/, sem etapa de build além de npm ci).
+  - type: web
+    name: taskflow-backend
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: backend
+    autoDeployTrigger: commit
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://taskflow-dcl5.onrender.com
+      - key: RATE_LIMIT_MAX
+        value: "10"
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "60000"
+      # Opcionais: provisionam as contas demo no boot (só com BOOTSTRAP_ENABLED=true).
+      - key: BOOTSTRAP_ENABLED
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: USER_EMAIL
+        sync: false
+      - key: USER_PASSWORD
+        sync: false

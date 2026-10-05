@@ -1,4 +1,4 @@
-const API = 'https://taskflow-backend-6syn.onrender.com';
+const API = 'https://taskflow-backend-rosy.vercel.app';
 const $ = (id) => document.getElementById(id);
 
 const authView = $('authView');

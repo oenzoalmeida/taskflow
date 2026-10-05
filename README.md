@@ -4,7 +4,7 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 
 ## Demonstração
 
-**Aplicação:** https://taskflow-dcl5.onrender.com
+**Aplicação:** https://oenzaa-taskflow.web.app
 
 ## Credencial demo
 
@@ -36,7 +36,7 @@ Projeto de portfólio desenvolvido para praticar autenticação, isolamento de d
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Backend:** Node.js, Express, JWT, BCrypt
 - **Banco de dados:** PostgreSQL (Neon)
-- **Infraestrutura:** Render
+- **Infraestrutura:** Frontend no Firebase Hosting; backend serverless na Vercel
 
 ## Perfis de acesso
 
@@ -69,63 +69,27 @@ O CI verifica a sintaxe dos arquivos JavaScript (`node --check`) e a integridade
 
 ## Deploy
 
-- **Frontend:** site estático no Render.
-- **Backend:** serviço Node no Render com variáveis `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL` e (opcional) `BOOTSTRAP_ENABLED`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `USER_EMAIL`, `USER_PASSWORD` para provisionar contas internas.
-- **Banco:** PostgreSQL gerenciado no Neon.
+- **Frontend:** Firebase Hosting (`firebase deploy --only hosting`, projeto `oenzoa-taskflow`,
+  configurado em `firebase.json`/`.firebaserc`). URL: https://oenzoa-taskflow.web.app
+- **Backend:** Vercel (função serverless em `backend/api/index.js` + `backend/vercel.json`,
+  raiz do projeto Vercel = `backend/`). URL: https://taskflow-backend-rosy.vercel.app
+  Variáveis de ambiente (Production): `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL=https://oenzoa-taskflow.web.app`.
+  Não definir `NODE_ENV` nem `PORT` (a Vercel define), nem `BOOTSTRAP_ENABLED` no serverless.
+- **Banco:** PostgreSQL gerenciado no Neon (string de conexão *pooled*, host `-pooler`, adequada
+  ao ambiente serverless).
 
-## Deploy do frontend no Cloudflare Pages (opcional, sem custo)
+### CORS e cookies (frontend Firebase + backend Vercel)
 
-O frontend é 100% portável: `script.js` chama o backend por URL absoluta
-(`https://taskflow-backend-6syn.onrender.com`, constante `API` na linha 1), então **nenhuma
-mudança de código** é necessária. O backend já envia o cookie de sessão com
-`SameSite=None; Secure` em produção, então login cross-site funciona sem alteração.
-
-| Aspecto | Hoje (front no Render static) | Front no Pages + backend no Render free |
-|---|---|---|
-| Carregamento da página | Site estático no Render (CDN, já sem cold start) | Imediato (edge Cloudflare, sem cold start) |
-| Primeira chamada de API após o backend dormir | Cold start do backend Node (~13–24s) | **Continua sentindo o cold start do backend** (~13–24s no primeiro login/GET após 15 min de inatividade) |
-| Custo | R$ 0 | R$ 0 (Pages free) |
-| DNS próprio | Não exigido | Não exigido (`*.pages.dev`) |
-
-**Aviso honesto:** a migração melhora apenas o carregamento da página. O backend Node continua
-no Render free, adormece após 15 minutos e a primeira ação que toca a API continua esperando o
-serviço acordar. Nada no Render é apagado nesta migração.
-
-### Passo a passo (dashboard Cloudflare, sem CLI)
-
-1. Cloudflare Dashboard → **Workers & Pages** → *Create* → **Pages** → *Connect to Git* →
-   autorize e selecione este repositório.
-2. *Project name:* `taskflow` (o domínio fica `taskflow.pages.dev`).
-3. *Build configuration*:
-   - **Framework preset:** `None`
-   - **Build command:** vazio (é um site estático, sem build)
-   - **Build output directory:** `/` (raiz do repositório)
-4. *Save and Deploy*. O front sobe em `https://taskflow.pages.dev`.
-
-### CORS do backend durante o cutover (Render + Cloudflare Pages no ar)
-
-O backend aceita `FRONTEND_URL` com **uma única origem** (comportamento original) ou com uma
-**lista de origens separadas por vírgula**. Para o período de transição, com o front antigo no
-Render e o novo no Cloudflare Pages simultaneamente no ar, configure as duas origens
-(Render → serviço do backend → Environment):
-
-```text
-FRONTEND_URL=https://taskflow-dcl5.onrender.com,https://taskflow.pages.dev
-```
-
-- Com a lista, a resposta CORS reflete a origem da requisição quando ela está na lista (nunca
-  `*`, pois os endpoints usam cookies com `credentials: true`). Origem fora da lista não recebe
-  cabeçalho `Access-Control-Allow-Origin`.
-- Com um único valor em `FRONTEND_URL`, o comportamento é exatamente o mesmo de antes
-  (origin fixa).
-- Cookies não mudam: `SameSite=None; Secure` continua igual para as duas origens.
-- Após o cutover (front do Render desativado), deixe apenas
-  `FRONTEND_URL=https://taskflow.pages.dev`.
+O backend aceita `FRONTEND_URL` com **uma única origem** ou com uma **lista separada por
+vírgula**; a resposta CORS reflete a origem da requisição quando ela está na lista (nunca `*`,
+pois os endpoints usam cookies com `credentials: true`). O cookie de sessão é emitido com
+`SameSite=None; Secure; HttpOnly`, o que faz o login cross-site
+(`oenzaa-taskflow.web.app` ↔ `taskflow-backend-rosy.vercel.app`) funcionar sem alteração.
 
 ## Limitações conhecidas
 
 - Sem verificação de e-mail e sem recuperação de senha.
-- Sem rate limiting nas rotas de autenticação.
+- Rate limit de autenticação é por instância (in-memory); no serverless o limite efetivo é multiplicado pelo número de instâncias quentes.
 - O título de uma tarefa não é editável após a criação.
 
 ## Autor

@@ -45,7 +45,7 @@ jobs:
       NODE_ENV: test
       RATE_LIMIT_MAX: '10'
       RATE_LIMIT_WINDOW_MS: '60000'
-      FRONTEND_URL: 'https://taskflow-dcl5.onrender.com,https://taskflow.pages.dev'
+      FRONTEND_URL: 'https://oenzaa-taskflow.web.app'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -97,7 +97,7 @@ jobs:
           echo "$headers" | grep -i '^retry-after:'
       - name: Smoke CORS multi-origin (reflete origem da lista, sem wildcard)
         run: |
-          for origin in https://taskflow-dcl5.onrender.com https://taskflow.pages.dev; do
+          for origin in https://oenzaa-taskflow.web.app; do
             acao=$(curl -s -D - -o /dev/null http://localhost:3000/health -H "Origin: $origin" | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
             echo "Origin $origin -> Access-Control-Allow-Origin: $acao"
             test "$acao" = "$origin"

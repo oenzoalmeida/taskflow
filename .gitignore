@@ -10,3 +10,6 @@ npm-debug.log*
 
 # Local Netlify folder
 .netlify
+
+# Vercel CLI (link do projeto)
+.vercel

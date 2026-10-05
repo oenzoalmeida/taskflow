@@ -106,14 +106,14 @@ jobs:
           echo "Origem fora da lista -> Access-Control-Allow-Origin: '$acao'"
           test -z "$acao"
           code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS http://localhost:3000/api/tasks \
-            -H 'Origin: https://taskflow.pages.dev' \
+            -H 'Origin: https://oenzoa-taskflow.web.app' \
             -H 'Access-Control-Request-Method: GET')
           acao=$(curl -s -D - -o /dev/null -X OPTIONS http://localhost:3000/api/tasks \
-            -H 'Origin: https://taskflow.pages.dev' \
+            -H 'Origin: https://oenzoa-taskflow.web.app' \
             -H 'Access-Control-Request-Method: GET' | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
           echo "Preflight OPTIONS (pages.dev) -> $code, Access-Control-Allow-Origin: $acao"
           test "$code" = "204"
-          test "$acao" = "https://taskflow.pages.dev"
+          test "$acao" = "https://oenzoa-taskflow.web.app"
       - name: Stop server
         if: always()
         working-directory: backend

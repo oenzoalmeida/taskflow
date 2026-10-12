@@ -4,7 +4,7 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 
 ## Demonstração
 
-**Aplicação:** https://oenzaa-taskflow.web.app
+**Aplicação:** https://oenzoa-taskflow.web.app
 
 ## Credencial demo
 
@@ -84,7 +84,7 @@ O backend aceita `FRONTEND_URL` com **uma única origem** ou com uma **lista sep
 vírgula**; a resposta CORS reflete a origem da requisição quando ela está na lista (nunca `*`,
 pois os endpoints usam cookies com `credentials: true`). O cookie de sessão é emitido com
 `SameSite=None; Secure; HttpOnly`, o que faz o login cross-site
-(`oenzaa-taskflow.web.app` ↔ `taskflow-backend-rosy.vercel.app`) funcionar sem alteração.
+(`oenzoa-taskflow.web.app` ↔ `taskflow-backend-rosy.vercel.app`) funcionar sem alteração.
 
 ## Limitações conhecidas
 

@@ -1,3 +1,4 @@
+import { databaseOptions, positiveInteger, proxyHops, createAuthRateLimit } from './security.js';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -17,39 +18,17 @@ const frontendOrigins = frontendUrl.split(',').map(origin => origin.trim()).filt
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error('JWT_SECRET is required');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined
-});
-
-app.set('trust proxy', 1); // atrás do proxy do Render, req.ip reflete o cliente real
+const pool = new Pool(databaseOptions());
+pool.on('error', () => console.error('Database pool unavailable'));
+app.set('trust proxy', proxyHops());
 app.use(cors({ origin: frontendOrigins.length > 1 ? frontendOrigins : frontendUrl, credentials: true }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 
-// Rate limit in-memory por IP (janela fixa) para as rotas de autenticação.
-const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 10);
-const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 60000);
-const authHits = new Map();
-
-function authRateLimit(req, res, next) {
-  const now = Date.now();
-  const key = req.ip || req.socket?.remoteAddress || 'unknown';
-  if (authHits.size > 5000) {
-    for (const [k, v] of authHits) if (now >= v.resetAt) authHits.delete(k);
-  }
-  const entry = authHits.get(key);
-  if (!entry || now >= entry.resetAt) {
-    authHits.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
-    return next();
-  }
-  entry.count += 1;
-  if (entry.count > RATE_LIMIT_MAX) {
-    res.set('Retry-After', String(Math.max(1, Math.ceil((entry.resetAt - now) / 1000))));
-    return res.status(429).json({ error: 'Muitas tentativas. Tente novamente em instantes.' });
-  }
-  next();
-}
+const authRateLimit = createAuthRateLimit(pool, {
+  max: positiveInteger(process.env.RATE_LIMIT_MAX, 10, 'RATE_LIMIT_MAX'),
+  windowMs: positiveInteger(process.env.RATE_LIMIT_WINDOW_MS, 60000, 'RATE_LIMIT_WINDOW_MS')
+});
 
 const cookieOptions = {
   httpOnly: true,

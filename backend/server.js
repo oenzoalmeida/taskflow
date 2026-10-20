@@ -1,3 +1,4 @@
+import { databaseOptions, positiveInteger, proxyHops, createAuthRateLimit } from './security.js';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -17,102 +18,17 @@ const frontendOrigins = frontendUrl.split(',').map(origin => origin.trim()).filt
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret) throw new Error('JWT_SECRET is required');
 
-// DATABASE_SSL_MODE controla a conexão TLS com o Postgres:
-//   verify    (padrão em produção) exige certificado válido — use
-//             DATABASE_CA_CERT se o provedor usar uma CA própria;
-//   no-verify criptografa sem conferir quem está do outro lado. Era o
-//             comportamento anterior, e só deve ser usado de forma consciente;
-//   disable   sem TLS, para desenvolvimento local.
-const sslMode = process.env.DATABASE_SSL_MODE || (process.env.NODE_ENV === 'production' ? 'verify' : 'disable');
-const caCert = process.env.DATABASE_CA_CERT;
-const sslConfig = {
-  disable: undefined,
-  'no-verify': { rejectUnauthorized: false },
-  verify: caCert ? { rejectUnauthorized: true, ca: caCert } : { rejectUnauthorized: true }
-}[sslMode];
-if (sslConfig === undefined && sslMode !== 'disable') {
-  throw new Error(`DATABASE_SSL_MODE inválido: ${sslMode}. Use verify, no-verify ou disable.`);
-}
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: sslConfig
-});
-
-app.set('trust proxy', 1); // atrás do proxy do Render, req.ip reflete o cliente real
+const pool = new Pool(databaseOptions());
+pool.on('error', () => console.error('Database pool unavailable'));
+app.set('trust proxy', proxyHops());
 app.use(cors({ origin: frontendOrigins.length > 1 ? frontendOrigins : frontendUrl, credentials: true }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
 
-// Rate limit por IP (janela fixa) nas rotas de autenticação.
-//
-// A contagem vive no Postgres, e não num Map em memória. Este backend também
-// roda como função serverless (backend/api/index.js na Vercel e
-// netlify/functions/api.mjs), onde cada instância teria o próprio Map: o
-// limite efetivo passaria a ser o configurado multiplicado pelo número de
-// instâncias ativas, e zeraria a cada cold start. No banco, a contagem é
-// única e sobrevive ao reinício do processo.
-const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 10);
-const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 60000);
-
-// O projeto não usa ferramenta de migração: o schema é criado por quem opera.
-// A tabela é garantida no primeiro uso para que um deploy não exija um passo
-// manual antes de o login voltar a funcionar.
-let tabelaDeRateLimit = null;
-function garantirTabelaDeRateLimit() {
-  if (!tabelaDeRateLimit) {
-    tabelaDeRateLimit = pool
-      .query(`CREATE TABLE IF NOT EXISTS auth_rate_limit (
-                key text PRIMARY KEY,
-                hits integer NOT NULL,
-                reset_at timestamptz NOT NULL
-              )`)
-      .catch((err) => { tabelaDeRateLimit = null; throw err; });
-  }
-  return tabelaDeRateLimit;
-}
-
-// Conta a tentativa e devolve o total da janela. O UPSERT é atômico: duas
-// requisições simultâneas no mesmo IP não perdem contagem, inclusive quando
-// atendidas por instâncias diferentes.
-async function registrarTentativa(key) {
-  await garantirTabelaDeRateLimit();
-  const segundos = RATE_LIMIT_WINDOW_MS / 1000;
-  const { rows } = await pool.query(
-    `INSERT INTO auth_rate_limit (key, hits, reset_at)
-     VALUES ($1, 1, now() + make_interval(secs => $2))
-     ON CONFLICT (key) DO UPDATE SET
-       hits = CASE WHEN auth_rate_limit.reset_at <= now() THEN 1 ELSE auth_rate_limit.hits + 1 END,
-       reset_at = CASE WHEN auth_rate_limit.reset_at <= now()
-                       THEN now() + make_interval(secs => $2)
-                       ELSE auth_rate_limit.reset_at END
-     RETURNING hits, GREATEST(1, ceil(extract(epoch FROM reset_at - now())))::int AS retry_after`,
-    [key, segundos]
-  );
-  // Limpeza oportunista: sem processo de fundo em serverless, apagar de vez em
-  // quando mantém a tabela pequena sem custo perceptível por requisição.
-  if (Math.random() < 0.02) {
-    pool.query(`DELETE FROM auth_rate_limit WHERE reset_at < now() - interval '1 hour'`).catch(() => {});
-  }
-  return rows[0];
-}
-
-async function authRateLimit(req, res, next) {
-  const key = req.ip || req.socket?.remoteAddress || 'unknown';
-  try {
-    const { hits, retry_after: retryAfter } = await registrarTentativa(key);
-    if (hits > RATE_LIMIT_MAX) {
-      res.set('Retry-After', String(retryAfter));
-      return res.status(429).json({ error: 'Muitas tentativas. Tente novamente em instantes.' });
-    }
-  } catch (err) {
-    // Falha aqui é falha de banco, e as rotas protegidas também dependem dele.
-    // Responder 429 esconderia a causa real; segue adiante e deixa a rota
-    // falhar com o erro verdadeiro.
-    console.error('rate limit indisponível:', err);
-  }
-  next();
-}
+const authRateLimit = createAuthRateLimit(pool, {
+  max: positiveInteger(process.env.RATE_LIMIT_MAX, 10, 'RATE_LIMIT_MAX'),
+  windowMs: positiveInteger(process.env.RATE_LIMIT_WINDOW_MS, 60000, 'RATE_LIMIT_WINDOW_MS')
+});
 
 const cookieOptions = {
   httpOnly: true,

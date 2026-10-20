@@ -1,3 +1,4 @@
+import { createRateLimitCleanup } from './maintenance.js';
 import { databaseOptions, positiveInteger, proxyHops, createAuthRateLimit } from './security.js';
 import express from 'express';
 import cors from 'cors';
@@ -57,6 +58,8 @@ function requireAdmin(req, res, next) {
   if (req.user?.role !== 'ADMIN') return res.status(403).json({ error: 'Acesso restrito ao administrador' });
   next();
 }
+
+app.get('/api/internal/maintenance/rate-limits', createRateLimitCleanup(pool));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'taskflow' }));
 

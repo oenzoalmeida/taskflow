@@ -53,15 +53,15 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
       - name: Security regression tests
-        run: node --test security.test.js
+        run: node --test security.test.js maintenance.test.js
         working-directory: backend
       - name: Provision authentication limiter
         working-directory: backend
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/001_auth_rate_limit.sql
-      - name: Install dependencies
-        working-directory: backend
-        run: npm ci
       - name: PostgreSQL limiter integration tests
         working-directory: backend
         run: node --test security.integration.test.js

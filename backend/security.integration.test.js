@@ -61,3 +61,19 @@ test('HTTP outage returns 503 and forwarded-header changes never reach authentic
     assert.equal(ips.size, 1);
   } finally { await new Promise(resolve => server.close(resolve)); }
 });
+
+test('maintenance removes only old expired quotas and is safe to repeat', async () => {
+  const { cleanupSql } = await import('./maintenance.js');
+  // This test database is an isolated CI service, never a production DATABASE_URL.
+  const prefix = `ci-${randomUUID()}`;
+  const old = `${prefix}-old`, recent = `${prefix}-recent`, active = `${prefix}-active`;
+  keys.push(old, recent, active);
+  await pools[0].query(`INSERT INTO auth_rate_limit VALUES
+    ($1, 10, now() - interval '2 hours'),
+    ($2, 10, now() - interval '10 minutes'),
+    ($3, 10, now() + interval '1 hour')`, [old, recent, active]);
+  await pools[0].query(cleanupSql);
+  await pools[1].query(cleanupSql);
+  const result = await pools[0].query('SELECT key FROM auth_rate_limit WHERE key=ANY($1::text[])', [[old, recent, active]]);
+  assert.deepEqual(result.rows.map(row => row.key).sort(), [recent, active].sort());
+});

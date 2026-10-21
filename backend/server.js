@@ -149,8 +149,18 @@ app.delete('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 app.delete('/api/account', requireAuth, asyncHandler(async (req, res) => {
-  await pool.query('DELETE FROM tasks WHERE user_id=$1', [req.user.sub]);
-  await pool.query('DELETE FROM users WHERE id=$1', [req.user.sub]);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM tasks WHERE user_id=$1', [req.user.sub]);
+    await client.query('DELETE FROM users WHERE id=$1', [req.user.sub]);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
   res.clearCookie('taskflow_session', { ...cookieOptions, maxAge: undefined }).status(204).end();
 }));
 

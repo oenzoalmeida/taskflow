@@ -44,14 +44,26 @@ function signUser(user) {
 }
 
 function requireAuth(req, res, next) {
+  let payload;
   try {
     const token = req.cookies.taskflow_session;
     if (!token) return res.status(401).json({ error: 'Não autenticado' });
-    req.user = jwt.verify(token, jwtSecret);
-    next();
+    payload = jwt.verify(token, jwtSecret);
   } catch {
-    res.status(401).json({ error: 'Sessão inválida ou expirada' });
+    return res.status(401).json({ error: 'Sessão inválida ou expirada' });
   }
+
+  // Revalida o usuário a cada requisição: desativação e mudanças de papel
+  // devem ter efeito imediato, mesmo para tokens ainda não expirados.
+  Promise.resolve()
+    .then(() => pool.query('SELECT id, role, active FROM users WHERE id=$1', [payload.sub]))
+    .then(({ rows }) => {
+      const user = rows[0];
+      if (!user || !user.active) return res.status(401).json({ error: 'Conta inativa ou inexistente' });
+      req.user = { ...payload, sub: user.id, role: user.role };
+      next();
+    })
+    .catch(next);
 }
 
 function requireAdmin(req, res, next) {

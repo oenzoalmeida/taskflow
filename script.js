@@ -1,4 +1,4 @@
-const API = 'https://taskflow-backend-6syn.onrender.com';
+const API = 'https://taskflow-backend-rosy.vercel.app';
 const $ = (id) => document.getElementById(id);
 
 const authView = $('authView');
@@ -7,6 +7,7 @@ const authForm = $('authForm');
 const nameInput = $('nameInput');
 const emailInput = $('emailInput');
 const passwordInput = $('passwordInput');
+const passwordHint = $('passwordHint');
 const authSubmit = $('authSubmit');
 const authMessage = $('authMessage');
 const loginTab = $('loginTab');
@@ -19,7 +20,10 @@ const backToTasks = $('backToTasks');
 const welcomeText = $('welcomeText');
 const taskForm = $('taskForm');
 const taskInput = $('taskInput');
+const taskFormSubmit = taskForm.querySelector('button[type="submit"]');
 const taskList = $('taskList');
+const loadingState = $('loadingState');
+const taskError = $('taskError');
 const emptyState = $('emptyState');
 const totalTasksElement = $('totalTasks');
 const completedTasksElement = $('completedTasks');
@@ -44,12 +48,23 @@ async function api(path, options = {}) {
   return data;
 }
 
+function showTaskError(message) {
+  taskError.textContent = message;
+  taskError.classList.remove('hidden');
+}
+
+function clearTaskError() {
+  taskError.classList.add('hidden');
+  taskError.textContent = '';
+}
+
 function setMode(next) {
   mode = next;
   const register = mode === 'register';
   loginTab.classList.toggle('active', !register);
   registerTab.classList.toggle('active', register);
   nameInput.classList.toggle('hidden', !register);
+  passwordHint.classList.toggle('hidden', !register);
   passwordInput.autocomplete = register ? 'new-password' : 'current-password';
   authSubmit.textContent = register ? 'Criar conta' : 'Entrar';
   authMessage.textContent = '';
@@ -61,6 +76,7 @@ registerTab.addEventListener('click', () => setMode('register'));
 authForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   authMessage.textContent = '';
+  authSubmit.disabled = true;
   try {
     const body = { email: emailInput.value.trim(), password: passwordInput.value };
     if (mode === 'register') body.name = nameInput.value.trim();
@@ -69,6 +85,8 @@ authForm.addEventListener('submit', async (event) => {
     await enterApp();
   } catch (error) {
     authMessage.textContent = error.message;
+  } finally {
+    authSubmit.disabled = false;
   }
 });
 
@@ -89,7 +107,6 @@ async function restoreSession() {
     await enterApp();
   } catch {
     authView.classList.remove('hidden');
-    taskView.classList.add('hidden');
   }
 }
 
@@ -104,29 +121,59 @@ logoutButton.addEventListener('click', async () => {
 });
 
 async function loadTasks() {
-  const data = await api('/api/tasks');
-  tasks = data.tasks.map(task => ({ id: task.id, text: task.title, completed: task.completed }));
-  renderTasks();
+  loadingState.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+  clearTaskError();
+  try {
+    const data = await api('/api/tasks');
+    tasks = data.tasks.map(task => ({ id: task.id, text: task.title, completed: task.completed }));
+    renderTasks();
+  } catch (error) {
+    tasks = [];
+    renderTasks();
+    emptyState.classList.add('hidden');
+    showTaskError(`${error.message} Recarregue a página para tentar novamente.`);
+  } finally {
+    loadingState.classList.add('hidden');
+  }
 }
 
 taskForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const title = taskInput.value.trim();
   if (!title) return;
-  await api('/api/tasks', { method: 'POST', body: JSON.stringify({ title }) });
-  taskInput.value = '';
-  await loadTasks();
-  taskInput.focus();
+  taskFormSubmit.disabled = true;
+  clearTaskError();
+  try {
+    await api('/api/tasks', { method: 'POST', body: JSON.stringify({ title }) });
+    taskInput.value = '';
+    await loadTasks();
+    taskInput.focus();
+  } catch (error) {
+    showTaskError(error.message);
+  } finally {
+    taskFormSubmit.disabled = false;
+  }
 });
 
 async function toggleTask(id, completed) {
-  await api(`/api/tasks/${id}`, { method: 'PATCH', body: JSON.stringify({ completed: !completed }) });
-  await loadTasks();
+  clearTaskError();
+  try {
+    await api(`/api/tasks/${id}`, { method: 'PATCH', body: JSON.stringify({ completed: !completed }) });
+    await loadTasks();
+  } catch (error) {
+    showTaskError(error.message);
+  }
 }
 
 async function deleteTask(id) {
-  await api(`/api/tasks/${id}`, { method: 'DELETE' });
-  await loadTasks();
+  clearTaskError();
+  try {
+    await api(`/api/tasks/${id}`, { method: 'DELETE' });
+    await loadTasks();
+  } catch (error) {
+    showTaskError(error.message);
+  }
 }
 
 function renderTasks() {
@@ -175,7 +222,9 @@ deleteAccountButton.addEventListener('click', async () => {
   if (!confirm('Confirma novamente? Os dados não poderão ser recuperados.')) return;
   try {
     await api('/api/account', { method: 'DELETE' });
-  } catch {}
+  } catch {
+    authMessage.textContent = 'Não foi possível excluir a conta agora. Tente novamente.';
+  }
   user = null;
   tasks = [];
   authView.classList.remove('hidden');
@@ -188,13 +237,19 @@ deleteAccountButton.addEventListener('click', async () => {
 adminButton.addEventListener('click', async () => {
   userArea.classList.add('hidden');
   adminArea.classList.remove('hidden');
-  const [overview, users] = await Promise.all([api('/api/admin/overview'), api('/api/admin/users')]);
-  $('adminStats').innerHTML = `
-    <div class="stat-card"><strong>${overview.users.total}</strong><span>usuários</span></div>
-    <div class="stat-card"><strong>${overview.users.active}</strong><span>usuários ativos</span></div>
-    <div class="stat-card"><strong>${overview.tasks.total}</strong><span>tarefas</span></div>
-    <div class="stat-card"><strong>${overview.tasks.completed}</strong><span>concluídas</span></div>`;
-  renderUsers(users.users);
+  try {
+    const [overview, users] = await Promise.all([api('/api/admin/overview'), api('/api/admin/users')]);
+    $('adminStats').innerHTML = `
+      <div class="stat-card"><strong>${overview.users.total}</strong><span>usuários</span></div>
+      <div class="stat-card"><strong>${overview.users.active}</strong><span>usuários ativos</span></div>
+      <div class="stat-card"><strong>${overview.tasks.total}</strong><span>tarefas</span></div>
+      <div class="stat-card"><strong>${overview.tasks.completed}</strong><span>concluídas</span></div>`;
+    renderUsers(users.users);
+  } catch (error) {
+    $('adminStats').innerHTML = '';
+    $('usersTable').innerHTML = '';
+    showTaskError(error.message);
+  }
 });
 
 backToTasks.addEventListener('click', () => {
@@ -211,8 +266,12 @@ function renderUsers(users) {
     $('usersTable').appendChild(tr);
   });
   document.querySelectorAll('.user-toggle').forEach(button => button.addEventListener('click', async () => {
-    await api(`/api/admin/users/${button.dataset.id}`, { method: 'PATCH', body: JSON.stringify({ active: button.dataset.active !== 'true' }) });
-    adminButton.click();
+    try {
+      await api(`/api/admin/users/${button.dataset.id}`, { method: 'PATCH', body: JSON.stringify({ active: button.dataset.active !== 'true' }) });
+      adminButton.click();
+    } catch (error) {
+      showTaskError(error.message);
+    }
   }));
 }
 

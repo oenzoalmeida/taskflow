@@ -1,0 +1,13 @@
+# Netlify — backend Express como função serverless (taskflow-api-557).
+# Redirect 200 preserva o path original: /health e /api/... chegam ao Express
+# completos. publish aponta para um diretório estático trivial (a API não
+# publica arquivos do backend na raiz do site).
+[build]
+  command = "npm ci"
+  functions = "netlify/functions"
+  publish = "public"
+
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/api"
+  status = 200

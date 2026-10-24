@@ -54,6 +54,8 @@ th,td { text-align:left; padding:14px 16px; border-bottom:1px solid #1e293b; }
 th { color:#94a3b8; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
 td { color:#e2e8f0; }
 .hidden { display:none !important; }
+.field-hint { color:#94a3b8; font-size:13px; }
+.loading-state { text-align:center; color:#94a3b8; padding:40px 20px; }
 .visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 .privacy-notice { margin-top:14px; font-size:13px; color:#94a3b8; }
 .privacy-notice a { color:#60a5fa; }
@@ -63,6 +65,11 @@ td { color:#e2e8f0; }
 .legal-card p { color:#cbd5e1; font-size:14px; line-height:1.65; }
 .legal-card p.muted { margin-top:24px; }
 .legal-card a { color:#60a5fa; }
+.notfound-card { text-align:center; margin-top:60px; }
+.notfound-card h1 { font-size:56px; }
+.notfound-actions { margin-top:22px; }
+.notfound-link { display:inline-block; border:none; border-radius:12px; padding:14px 22px; background:#2563eb; color:white; font-weight:600; text-decoration:none; }
+.notfound-link:hover { background:#1d4ed8; }
 .danger-link { border:none; background:transparent; color:#f87171; padding:9px 10px; border-radius:10px; font-size:14px; }
 .danger-link:hover { color:#ef4444; text-decoration:underline; }
 .app-footer { display:flex; justify-content:center; gap:18px; padding:18px 20px 26px; color:#94a3b8; font-size:13px; }

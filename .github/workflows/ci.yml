@@ -45,6 +45,7 @@ jobs:
       NODE_ENV: test
       RATE_LIMIT_MAX: '10'
       RATE_LIMIT_WINDOW_MS: '60000'
+      FRONTEND_URL: 'https://oenzoa-taskflow.web.app,http://localhost:5500'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,6 +56,15 @@ jobs:
       - name: Install dependencies
         working-directory: backend
         run: npm ci
+      - name: Security regression tests
+        run: node --test security.test.js maintenance.test.js
+        working-directory: backend
+      - name: Provision authentication limiter
+        working-directory: backend
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/001_auth_rate_limit.sql
+      - name: PostgreSQL limiter integration tests
+        working-directory: backend
+        run: node --test security.integration.test.js
       - name: Check backend syntax
         working-directory: backend
         run: node --check server.js
@@ -94,6 +104,25 @@ jobs:
           headers=$(curl -s -D - -o /dev/null -X POST http://localhost:3000/api/auth/login \
             -H 'Content-Type: application/json' -d '{"email":"nobody@example.com","password":"wrong-password"}')
           echo "$headers" | grep -i '^retry-after:'
+      - name: Smoke CORS multi-origin (reflete origem da lista, sem wildcard)
+        run: |
+          for origin in https://oenzoa-taskflow.web.app; do
+            acao=$(curl -s -D - -o /dev/null http://localhost:3000/health -H "Origin: $origin" | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
+            echo "Origin $origin -> Access-Control-Allow-Origin: $acao"
+            test "$acao" = "$origin"
+          done
+          acao=$(curl -s -D - -o /dev/null http://localhost:3000/health -H 'Origin: https://origem-nao-autorizada.example.com' | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
+          echo "Origem fora da lista -> Access-Control-Allow-Origin: '$acao'"
+          test -z "$acao"
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS http://localhost:3000/api/tasks \
+            -H 'Origin: https://oenzoa-taskflow.web.app' \
+            -H 'Access-Control-Request-Method: GET')
+          acao=$(curl -s -D - -o /dev/null -X OPTIONS http://localhost:3000/api/tasks \
+            -H 'Origin: https://oenzoa-taskflow.web.app' \
+            -H 'Access-Control-Request-Method: GET' | grep -i '^access-control-allow-origin:' | tr -d '\r' | awk '{print $2}')
+          echo "Preflight OPTIONS (pages.dev) -> $code, Access-Control-Allow-Origin: $acao"
+          test "$code" = "204"
+          test "$acao" = "https://oenzoa-taskflow.web.app"
       - name: Stop server
         if: always()
         working-directory: backend

@@ -1,0 +1,32 @@
+name: Deploy Frontend (Firebase Hosting)
+
+# Deploy manual. Autenticação keyless via Workload Identity Federation:
+# o token de acesso obtido é repassado ao firebase-tools (sem chave JSON).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          workload_identity_provider: ${{ secrets.FIREBASE_WIF_PROVIDER }}
+          service_account: ${{ secrets.FIREBASE_DEPLOY_SA }}
+          token_format: access_token
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Deploy to Firebase Hosting
+        env:
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: npx --yes firebase-tools@latest deploy --only hosting --project oenzoa-taskflow --non-interactive --token "$ACCESS_TOKEN"

@@ -4,6 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TaskFlow | Gerenciador de Tarefas</title>
+  <meta name="description" content="Gerenciador de tarefas full stack com autenticação e dados por usuário.">
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TaskFlow">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="TaskFlow — Gerenciador de Tarefas">
+  <meta property="og:description" content="Gerenciador de tarefas full stack com autenticação e dados por usuário.">
+  <meta property="og:url" content="https://oenzoa-taskflow.web.app/">
+  <meta property="og:image" content="https://oenzoa-taskflow.web.app/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="TaskFlow — gerenciador de tarefas full stack">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TaskFlow — Gerenciador de Tarefas">
+  <meta name="twitter:description" content="Gerenciador de tarefas full stack com autenticação e dados por usuário.">
+  <meta name="twitter:image" content="https://oenzoa-taskflow.web.app/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -25,7 +41,8 @@
       <label class="visually-hidden" for="emailInput">E-mail</label>
       <input id="emailInput" type="email" placeholder="E-mail" autocomplete="email" required>
       <label class="visually-hidden" for="passwordInput">Senha</label>
-      <input id="passwordInput" type="password" placeholder="Senha" autocomplete="current-password" required>
+      <input id="passwordInput" type="password" placeholder="Senha" autocomplete="current-password" minlength="12" required>
+      <p id="passwordHint" class="field-hint hidden">Use pelo menos 12 caracteres.</p>
       <button id="authSubmit" type="submit">Entrar</button>
     </form>
     <p id="privacyNotice" class="privacy-notice hidden">Seus dados são usados apenas para autenticação e funcionamento do serviço. Saiba mais na <a href="privacidade.html">Política de Privacidade</a>.</p>
@@ -66,7 +83,9 @@
         <span><strong id="completedTasks">0</strong> concluídas</span>
       </div>
       <ul id="taskList" class="task-list"></ul>
-      <div id="emptyState" class="empty-state"><div class="empty-icon">✓</div><h2>Nenhuma tarefa por aqui</h2><p>Adicione uma tarefa para começar.</p></div>
+      <div id="loadingState" class="loading-state hidden">Carregando suas tarefas…</div>
+      <div id="taskError" class="message hidden" aria-live="polite"></div>
+      <div id="emptyState" class="empty-state hidden"><div class="empty-icon">✓</div><h2>Nenhuma tarefa por aqui</h2><p>Adicione uma tarefa para começar.</p></div>
     </div>
 
     <div id="adminArea" class="hidden">

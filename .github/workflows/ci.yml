@@ -65,6 +65,9 @@ jobs:
       - name: PostgreSQL limiter integration tests
         working-directory: backend
         run: node --test security.integration.test.js
+      - name: Task CRUD and per-user isolation tests
+        working-directory: backend
+        run: node --test tasks.crud.test.js
       - name: Check backend syntax
         working-directory: backend
         run: node --check server.js

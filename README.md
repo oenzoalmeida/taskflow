@@ -6,6 +6,14 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 
 **Aplicação:** https://oenzoa-taskflow.web.app
 
+## Telas
+
+| Login | Painel de tarefas |
+| --- | --- |
+| ![Tela de login](docs/screenshots/login.png) | ![Painel autenticado com tarefas](docs/screenshots/painel.png) |
+
+Capturas da [demonstração pública](https://oenzoa-taskflow.web.app) (login) e de execução local descartável (painel).
+
 ## Credencial demo
 
 > **Nota:** as credenciais abaixo são públicas para fins de demonstração. Os dados da conta demo podem ser alterados por outros visitantes.

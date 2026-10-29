@@ -86,6 +86,13 @@ test.after(async () => {
   for (const cookie of [cookieA, cookieB]) {
     try { await api(cookie, 'DELETE', '/api/account'); } catch { /* limpeza best-effort */ }
   }
+  // As tentativas de autenticação destes testes consomem a quota do limitador
+  // (tabela auth_rate_limit, chaveada por IP e compartilhada com o servidor do
+  // passo de smoke do CI). Limpa as linhas para deixar a quota zerada para os
+  // passos seguintes — o banco é exclusivo de teste/CI, nunca produção.
+  const cleanup = new pg.Pool({ connectionString: databaseUrl, max: 1 });
+  try { await cleanup.query('DELETE FROM auth_rate_limit'); }
+  finally { await cleanup.end(); }
 });
 
 test('lista de tarefas exige autenticação', async () => {

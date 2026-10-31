@@ -124,7 +124,7 @@ app.post('/api/auth/login', authRateLimit, asyncHandler(async (req, res) => {
     if (!user || !user.active || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ error: 'E-mail ou senha inválidos' });
     }
-    const safeUser = { id: user.id, name: user.name, email: user.email, role: user.role, active: user.active, must_change_password: Boolean(user.must_change_password) };
+    const safeUser = { id: user.id, name: user.name, email: user.email, role: user.role, active: user.active, must_change_password: Boolean(user.must_change_password), auth_version: user.auth_version ?? 1 };
     res.cookie('taskflow_session', signUser(safeUser), cookieOptions).json({ user: safeUser });
   } catch (err) {
     // Erro de DB/inesperado não pode derrubar o processo com unhandled rejection.

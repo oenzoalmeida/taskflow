@@ -6,15 +6,15 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 
 **Aplicação:** https://oenzoa-taskflow.web.app
 
-## Credencial demo
+## Acesso demo
 
-> **Nota:** as credenciais abaixo são públicas para fins de demonstração. Os dados da conta demo podem ser alterados por outros visitantes.
-
-| Perfil | E-mail | Senha |
-|---|---|---|
-| Usuário | `demo@taskflow.app` | `TaskFlow@2026` |
+> O acesso de demonstração está **temporariamente indisponível**. A aplicação segue no ar no endereço acima; esta seção será atualizada quando a credencial demo estiver ativa novamente.
 
 O acesso administrativo é interno e não possui credencial pública.
+
+## Capturas de tela
+
+![Tela de entrada do TaskFlow](docs/screenshots/login.png)
 
 ## Sobre
 

@@ -40,8 +40,13 @@ const cookieOptions = {
 };
 
 function signUser(user) {
-  return jwt.sign({ sub: String(user.id), role: user.role, email: user.email, name: user.name }, jwtSecret, { expiresIn: '7d' });
+  return jwt.sign({ sub: String(user.id), role: user.role, email: user.email, name: user.name, av: user.auth_version ?? 1 }, jwtSecret, { expiresIn: '7d' });
 }
+
+// Troca de senha obrigatória: com must_change_password=true a sessão só acessa
+// a leitura da própria conta e a troca de senha. A guarda fica no backend
+// (requireAuth cobre todas as rotas protegidas), não apenas na interface.
+const PASSWORD_CHANGE_ALLOWLIST = new Set(['/api/auth/me', '/api/auth/change-password']);
 
 function requireAuth(req, res, next) {
   let payload;
@@ -56,11 +61,17 @@ function requireAuth(req, res, next) {
   // Revalida o usuário a cada requisição: desativação e mudanças de papel
   // devem ter efeito imediato, mesmo para tokens ainda não expirados.
   Promise.resolve()
-    .then(() => pool.query('SELECT id, role, active FROM users WHERE id=$1', [payload.sub]))
+    .then(() => pool.query('SELECT id, role, active, must_change_password, auth_version FROM users WHERE id=$1', [payload.sub]))
     .then(({ rows }) => {
       const user = rows[0];
       if (!user || !user.active) return res.status(401).json({ error: 'Conta inativa ou inexistente' });
-      req.user = { ...payload, sub: user.id, role: user.role };
+      // Tokens de uma auth_version antiga perdem a validade: trocar a senha
+      // revoga todas as sessões anteriores na hora.
+      if ((payload.av ?? 1) !== user.auth_version) return res.status(401).json({ error: 'Sessão inválida ou expirada' });
+      req.user = { ...payload, sub: user.id, role: user.role, mustChangePassword: user.must_change_password };
+      if (user.must_change_password && !PASSWORD_CHANGE_ALLOWLIST.has(req.path)) {
+        return res.status(403).json({ error: 'Troca de senha obrigatória no primeiro acesso', code: 'MUST_CHANGE_PASSWORD' });
+      }
       next();
     })
     .catch(next);
@@ -113,7 +124,7 @@ app.post('/api/auth/login', authRateLimit, asyncHandler(async (req, res) => {
     if (!user || !user.active || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ error: 'E-mail ou senha inválidos' });
     }
-    const safeUser = { id: user.id, name: user.name, email: user.email, role: user.role, active: user.active };
+    const safeUser = { id: user.id, name: user.name, email: user.email, role: user.role, active: user.active, must_change_password: Boolean(user.must_change_password), auth_version: user.auth_version ?? 1 };
     res.cookie('taskflow_session', signUser(safeUser), cookieOptions).json({ user: safeUser });
   } catch (err) {
     // Erro de DB/inesperado não pode derrubar o processo com unhandled rejection.
@@ -126,8 +137,29 @@ app.post('/api/auth/logout', (_req, res) => {
   res.clearCookie('taskflow_session', { ...cookieOptions, maxAge: undefined }).status(204).end();
 });
 
+app.post('/api/auth/change-password', authRateLimit, requireAuth, asyncHandler(async (req, res) => {
+  const currentPassword = String(req.body?.current_password || '');
+  const newPassword = String(req.body?.new_password || '');
+  if (newPassword.length < 12) return res.status(400).json({ error: 'A nova senha precisa de pelo menos 12 caracteres' });
+  if (newPassword === currentPassword) return res.status(400).json({ error: 'A nova senha precisa ser diferente da senha temporária' });
+  const { rows: found } = await pool.query('SELECT id,name,email,role,active,password_hash,auth_version FROM users WHERE id=$1', [req.user.sub]);
+  const current = found[0];
+  if (!current || !(await bcrypt.compare(currentPassword, current.password_hash))) {
+    return res.status(401).json({ error: 'Senha atual incorreta' });
+  }
+  const passwordHash = await bcrypt.hash(newPassword, 12);
+  const { rows: updated } = await pool.query(
+    `UPDATE users SET password_hash=$1, must_change_password=false, auth_version=auth_version+1
+     WHERE id=$2 RETURNING id,name,email,role,active,must_change_password,auth_version`,
+    [passwordHash, current.id]
+  );
+  const fresh = updated[0];
+  // A nova sessão já nasce na auth_version atual; todas as anteriores morrem.
+  res.cookie('taskflow_session', signUser(fresh), cookieOptions).json({ user: { id: fresh.id, name: fresh.name, email: fresh.email, role: fresh.role, active: fresh.active, must_change_password: fresh.must_change_password } });
+}));
+
 app.get('/api/auth/me', requireAuth, asyncHandler(async (req, res) => {
-  const { rows } = await pool.query('SELECT id,name,email,role,active FROM users WHERE id=$1', [req.user.sub]);
+  const { rows } = await pool.query('SELECT id,name,email,role,active,must_change_password FROM users WHERE id=$1', [req.user.sub]);
   if (!rows[0] || !rows[0].active) return res.status(401).json({ error: 'Conta indisponível' });
   res.json({ user: rows[0] });
 }));
@@ -191,8 +223,17 @@ app.get('/api/admin/users', requireAuth, requireAdmin, asyncHandler(async (_req,
 
 app.patch('/api/admin/users/:id', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   const active = Boolean(req.body?.active);
-  const { rows } = await pool.query("UPDATE users SET active=$1 WHERE id=$2 AND role='USER' RETURNING id,name,email,role,active,created_at", [active, req.params.id]);
-  if (!rows[0]) return res.status(404).json({ error: 'Usuário não encontrado' });
+  if (String(req.params.id) === String(req.user.sub)) {
+    return res.status(400).json({ error: 'Sua própria conta não pode ser alterada pelo painel' });
+  }
+  const { rows: found } = await pool.query('SELECT id,role,active FROM users WHERE id=$1', [req.params.id]);
+  const target = found[0];
+  if (!target) return res.status(404).json({ error: 'Usuário não encontrado' });
+  if (target.role === 'ADMIN' && target.active && !active) {
+    const { rows: admins } = await pool.query("SELECT COUNT(*)::int n FROM users WHERE role='ADMIN' AND active");
+    if (admins[0].n <= 1) return res.status(409).json({ error: 'Não é possível desativar o último administrador ativo' });
+  }
+  const { rows } = await pool.query('UPDATE users SET active=$1 WHERE id=$2 RETURNING id,name,email,role,active,created_at', [active, req.params.id]);
   res.json({ user: rows[0] });
 }));
 
@@ -216,7 +257,9 @@ async function bootstrapDemoUsers() {
     const existing = await pool.query('SELECT id FROM users WHERE lower(email)=lower($1)', [entry.email]);
     if (!existing.rowCount) {
       const hash = await bcrypt.hash(entry.password, 12);
-      await pool.query('INSERT INTO users (name,email,password_hash,role,active) VALUES ($1,$2,$3,$4,true)', [entry.name, entry.email.toLowerCase(), hash, entry.role]);
+      // Administradores do bootstrap nascem com senha temporária: o primeiro
+      // acesso exige a troca antes de qualquer operação.
+      await pool.query('INSERT INTO users (name,email,password_hash,role,active,must_change_password) VALUES ($1,$2,$3,$4,true,$5)', [entry.name, entry.email.toLowerCase(), hash, entry.role, entry.role === 'ADMIN']);
     }
   }
   console.log('TaskFlow bootstrap completed');

@@ -16,6 +16,10 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 
 O acesso administrativo é interno e não possui credencial pública.
 
+## Capturas de tela
+
+![Tela de entrada do TaskFlow](docs/screenshots/login.png)
+
 ## Sobre
 
 Projeto de portfólio desenvolvido para praticar autenticação, isolamento de dados por usuário e publicação em nuvem. Cada usuário enxerga exclusivamente as próprias tarefas. O painel administrativo é separado e restrito por papel.

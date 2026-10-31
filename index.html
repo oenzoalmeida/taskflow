@@ -49,6 +49,23 @@
     <p id="authMessage" class="message" aria-live="polite"></p>
   </section>
 
+  <section id="passwordView" class="auth-card hidden">
+    <span class="tag">SEGURANÇA</span>
+    <h1>Crie sua senha definitiva</h1>
+    <p class="muted">Este acesso usa uma senha temporária. Para continuar, defina uma nova senha.</p>
+    <form id="passwordForm" class="auth-form">
+      <label class="visually-hidden" for="currentPasswordInput">Senha temporária</label>
+      <input id="currentPasswordInput" type="password" placeholder="Senha temporária" autocomplete="current-password" required>
+      <label class="visually-hidden" for="newPasswordInput">Nova senha</label>
+      <input id="newPasswordInput" type="password" placeholder="Nova senha" autocomplete="new-password" minlength="12" required>
+      <label class="visually-hidden" for="confirmPasswordInput">Confirme a nova senha</label>
+      <input id="confirmPasswordInput" type="password" placeholder="Confirme a nova senha" autocomplete="new-password" minlength="12" required>
+      <p class="field-hint">Use pelo menos 12 caracteres. Ao trocar, as sessões antigas são encerradas.</p>
+      <button id="passwordSubmit" type="submit">Definir nova senha</button>
+    </form>
+    <p id="passwordMessage" class="message" aria-live="polite"></p>
+  </section>
+
   <section id="taskView" class="task-app hidden">
     <div class="topbar">
       <div>

@@ -30,6 +30,13 @@ const completedTasksElement = $('completedTasks');
 const progressNumber = $('progressNumber');
 const filterButtons = document.querySelectorAll('.filter[data-filter]');
 const deleteAccountButton = $('deleteAccountButton');
+const passwordView = $('passwordView');
+const passwordForm = $('passwordForm');
+const currentPasswordInput = $('currentPasswordInput');
+const newPasswordInput = $('newPasswordInput');
+const confirmPasswordInput = $('confirmPasswordInput');
+const passwordSubmit = $('passwordSubmit');
+const passwordMessage = $('passwordMessage');
 
 let mode = 'login';
 let user = null;
@@ -44,7 +51,15 @@ async function api(path, options = {}) {
   });
   if (response.status === 204) return null;
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || 'Não foi possível concluir a operação');
+  if (!response.ok) {
+    const error = new Error(data.error || 'Não foi possível concluir a operação');
+    error.code = data.code;
+    if (error.code === 'MUST_CHANGE_PASSWORD' && user) {
+      user.must_change_password = true;
+      showPasswordView();
+    }
+    throw error;
+  }
   return data;
 }
 
@@ -92,6 +107,8 @@ authForm.addEventListener('submit', async (event) => {
 
 async function enterApp() {
   authView.classList.add('hidden');
+  if (user.must_change_password) return showPasswordView();
+  passwordView.classList.add('hidden');
   taskView.classList.remove('hidden');
   welcomeText.textContent = `Olá, ${user.name}. Organize suas tarefas e acompanhe seu progresso.`;
   adminButton.classList.toggle('hidden', user.role !== 'ADMIN');
@@ -109,6 +126,34 @@ async function restoreSession() {
     authView.classList.remove('hidden');
   }
 }
+
+function showPasswordView() {
+  taskView.classList.add('hidden');
+  passwordView.classList.remove('hidden');
+  passwordMessage.textContent = '';
+}
+
+passwordForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  passwordMessage.textContent = '';
+  if (newPasswordInput.value !== confirmPasswordInput.value) {
+    passwordMessage.textContent = 'A confirmação não confere com a nova senha.';
+    return;
+  }
+  passwordSubmit.disabled = true;
+  try {
+    const data = await api('/api/auth/change-password', { method: 'POST', body: JSON.stringify({ current_password: currentPasswordInput.value, new_password: newPasswordInput.value }) });
+    user = data.user;
+    currentPasswordInput.value = '';
+    newPasswordInput.value = '';
+    confirmPasswordInput.value = '';
+    await enterApp();
+  } catch (error) {
+    passwordMessage.textContent = error.message;
+  } finally {
+    passwordSubmit.disabled = false;
+  }
+});
 
 logoutButton.addEventListener('click', async () => {
   try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
@@ -261,7 +306,8 @@ function renderUsers(users) {
   $('usersTable').innerHTML = '';
   users.forEach(item => {
     const tr = document.createElement('tr');
-    const action = item.role === 'USER' ? `<button class="secondary user-toggle" data-id="${item.id}" data-active="${item.active}">${item.active ? 'Desativar' : 'Ativar'}</button>` : '—';
+    const isSelf = user && String(item.id) === String(user.id);
+    const action = isSelf ? '—' : `<button class="secondary user-toggle" data-id="${item.id}" data-active="${item.active}">${item.active ? 'Desativar' : 'Ativar'}</button>`;
     tr.innerHTML = `<td>${escapeHtml(item.name)}</td><td>${escapeHtml(item.email)}</td><td>${item.role === 'ADMIN' ? 'Administrador' : 'Usuário'}</td><td>${item.active ? 'Ativo' : 'Inativo'}</td><td>${action}</td>`;
     $('usersTable').appendChild(tr);
   });

@@ -155,15 +155,19 @@ passwordForm.addEventListener('submit', async (event) => {
   }
 });
 
-logoutButton.addEventListener('click', async () => {
+async function logoutToAuth() {
   try { await api('/api/auth/logout', { method: 'POST' }); } catch {}
   user = null;
   tasks = [];
   authView.classList.remove('hidden');
   taskView.classList.add('hidden');
+  passwordView.classList.add('hidden');
   emailInput.value = '';
   passwordInput.value = '';
-});
+}
+
+logoutButton.addEventListener('click', logoutToAuth);
+$('passwordLogout').addEventListener('click', logoutToAuth);
 
 async function loadTasks() {
   loadingState.classList.remove('hidden');

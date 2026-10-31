@@ -76,3 +76,15 @@ td { color:#e2e8f0; }
 .app-footer a { color:#94a3b8; }
 .app-footer a:hover { color:white; }
 @media (max-width:760px) { .container{padding:28px 14px}.task-app,.auth-card{padding:24px 18px}.topbar,.header,.admin-heading{align-items:flex-start;flex-direction:column}.topbar-actions{width:100%}.topbar h1{font-size:34px}.task-form{flex-direction:column}.stats-grid{grid-template-columns:repeat(2,1fr)} }
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--muted, #8b93a7);
+  font: inherit;
+  font-size: 0.9rem;
+  margin-top: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.link-button:hover { color: var(--text, #e7eaf3); }

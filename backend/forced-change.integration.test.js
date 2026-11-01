@@ -53,6 +53,10 @@ test.after(async () => {
   if (server) server.close();
   await pool.query('DELETE FROM tasks WHERE user_id = ANY($1::bigint[])', [ids]);
   await pool.query('DELETE FROM users WHERE id = ANY($1::bigint[])', [ids]);
+  // O limiter conta cada tentativa no Postgres compartilhado (key = IP). Sem
+  // limpar, o smoke do CI (login 1..10 -> 401, 11 -> 429) herda os hits deste
+  // teste e já recebe 429 no primeiro login.
+  await pool.query("DELETE FROM auth_rate_limit WHERE key IN ('127.0.0.1','::1','::ffff:127.0.0.1','localhost')");
   await pool.end();
 });
 

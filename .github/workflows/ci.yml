@@ -72,6 +72,12 @@ jobs:
         run: |
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS users (id serial PRIMARY KEY, name text NOT NULL, email text NOT NULL UNIQUE, password_hash text NOT NULL, role text NOT NULL DEFAULT 'USER', active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now());"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "CREATE TABLE IF NOT EXISTS tasks (id serial PRIMARY KEY, user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE, title text NOT NULL, completed boolean NOT NULL DEFAULT false, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());"
+      - name: Apply forced password change migration
+        working-directory: backend
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/002_forced_password_change.sql
+      - name: Forced change integration tests
+        working-directory: backend
+        run: node --test forced-change.integration.test.js
       - name: Start server
         working-directory: backend
         run: |

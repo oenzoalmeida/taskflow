@@ -1,6 +1,7 @@
 // Troca obrigatória de senha no primeiro acesso + revogação de sessões.
-// Roda contra PostgreSQL real (DATABASE_URL) com o schema de produção
-// (dump restaurado) + migration 002 aplicada. Espelha o ForcedChangeIT do QueueFlow.
+// Roda contra PostgreSQL real descartável (DATABASE_URL) com o schema base
+// (mesmas tabelas do CI) + migration 002 aplicada; fixtures próprios, sem dump.
+// Espelha o ForcedChangeIT do QueueFlow.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import pg from 'pg';
@@ -42,7 +43,9 @@ test.before(async () => {
     "INSERT INTO users (name,email,password_hash,role,active,must_change_password) VALUES ('T User','t-user@example.com',$1,'USER',true,false) RETURNING id", [hash]);
   const { rows: a2 } = await pool.query(
     "INSERT INTO users (name,email,password_hash,role,active,must_change_password) VALUES ('T Admin2','t-admin2@example.com',$1,'ADMIN',true,false) RETURNING id", [hash]);
-  ids.push(a[0].id, u[0].id, a2[0].id);
+  const { rows: a3 } = await pool.query(
+    "INSERT INTO users (name,email,password_hash,role,active,must_change_password) VALUES ('T Admin3','t-admin3@example.com',$1,'ADMIN',true,false) RETURNING id", [hash]);
+  ids.push(a[0].id, u[0].id, a2[0].id, a3[0].id);
   server = await new Promise(r => { const s = app.listen(0, '127.0.0.1', () => r(s)); });
   base = `http://127.0.0.1:${server.address().port}`;
 });
@@ -50,6 +53,10 @@ test.after(async () => {
   if (server) server.close();
   await pool.query('DELETE FROM tasks WHERE user_id = ANY($1::bigint[])', [ids]);
   await pool.query('DELETE FROM users WHERE id = ANY($1::bigint[])', [ids]);
+  // O limiter conta cada tentativa no Postgres compartilhado (key = IP). Sem
+  // limpar, o smoke do CI (login 1..10 -> 401, 11 -> 429) herda os hits deste
+  // teste e já recebe 429 no primeiro login.
+  await pool.query("DELETE FROM auth_rate_limit WHERE key IN ('127.0.0.1','::1','::ffff:127.0.0.1','localhost')");
   await pool.end();
 });
 
@@ -117,16 +124,12 @@ test('7. não desativa o último ADMIN ativo; desativa quando há outro; sessão
   assert.equal(off.json.user.active, false);
   const dead = await api('/api/auth/me', { cookie: login2.cookie });
   assert.equal(dead.status, 401); // revalidação por requisição
-  // agora t-admin é o único ADMIN ativo dentre os de teste + admin@taskflow.app (id 1, do dump, ativo):
-  // desativar o id 1 deixaria t-admin; desativar t-admin deixaria id 1 -> ambos permitidos.
-  // último cenário de 409 exige só 1 admin ativo: desativa id 1 e tenta desativar t-admin
-  const off1 = await api('/api/admin/users/1', { method: 'PATCH', cookie: adminLogin.cookie, body: { active: false } });
+  // t-admin3 é outro ADMIN ativo (fixture local, sem depender de dump): desativá-lo é permitido.
+  const off1 = await api(`/api/admin/users/${ids[3]}`, { method: 'PATCH', cookie: adminLogin.cookie, body: { active: false } });
   assert.equal(off1.status, 200);
+  // desativar a própria conta pelo painel é bloqueado (400), independente de quantos admins restam.
   const last = await api(`/api/admin/users/${ids[0]}`, { method: 'PATCH', cookie: adminLogin.cookie, body: { active: false } });
   assert.equal(last.status, 400); // própria conta pelo painel = 400
-  // reativa id 1 para não deixar o dump de teste sem o admin original
-  const on1 = await api('/api/admin/users/1', { method: 'PATCH', cookie: adminLogin.cookie, body: { active: true } });
-  assert.equal(on1.status, 200);
 });
 
 test('8. conta USER normal sem flag acessa rotas normalmente', async () => {

@@ -39,6 +39,11 @@ button { cursor:pointer; }
 .task-item.completed .task-text { color:#94a3b8; text-decoration:line-through; }
 .delete-button { border:none; background:transparent; color:#94a3b8; padding:7px 10px; border-radius:8px; }
 .delete-button:hover { color:#ef4444; background:rgba(239,68,68,.08); }
+.edit-button { border:none; background:transparent; color:#94a3b8; padding:7px 10px; border-radius:8px; }
+.edit-button:hover { color:#60a5fa; background:rgba(96,165,250,.08); }
+.task-edit-form { display:flex; align-items:center; gap:10px; width:100%; }
+.task-edit-input { flex:1; min-width:0; background:#0b1220; border:1px solid #334155; border-radius:8px; color:#e2e8f0; padding:8px 10px; font-size:14px; }
+.task-edit-input:focus { outline:2px solid #2563eb; outline-offset:1px; }
 .empty-state { text-align:center; padding:55px 20px 25px; }
 .empty-icon { width:60px; height:60px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border-radius:50%; background:#111827; border:1px solid #334155; color:#60a5fa; font-size:26px; }
 .empty-state h2 { font-size:18px; margin-bottom:6px; }

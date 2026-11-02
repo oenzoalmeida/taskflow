@@ -78,6 +78,9 @@ jobs:
       - name: Forced change integration tests
         working-directory: backend
         run: node --test forced-change.integration.test.js
+      - name: Task CRUD, edit and per-user isolation tests
+        working-directory: backend
+        run: node --test tasks.crud.test.js
       - name: Start server
         working-directory: backend
         run: |

@@ -205,6 +205,57 @@ taskForm.addEventListener('submit', async (event) => {
   }
 });
 
+async function saveTaskTitle(task, newTitle) {
+  clearTaskError();
+  await api(`/api/tasks/${task.id}`, { method: 'PATCH', body: JSON.stringify({ title: newTitle }) });
+  await loadTasks();
+}
+
+function startTaskEdit(li, task) {
+  li.innerHTML = '';
+  const form = document.createElement('form');
+  form.className = 'task-edit-form';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'task-edit-input';
+  input.value = task.text;
+  input.maxLength = 240;
+  input.required = true;
+  input.setAttribute('aria-label', `Novo título da tarefa: ${task.text}`);
+  const save = document.createElement('button');
+  save.type = 'submit';
+  save.className = 'edit-button';
+  save.textContent = 'Salvar';
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'edit-button';
+  cancel.textContent = 'Cancelar';
+  cancel.addEventListener('click', () => renderTasks());
+  form.append(input, save, cancel);
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const title = input.value.trim();
+    if (!title) {
+      showTaskError('Informe uma tarefa válida.');
+      return;
+    }
+    if (title === task.text) {
+      renderTasks();
+      return;
+    }
+    save.disabled = true;
+    try {
+      await saveTaskTitle(task, title);
+    } catch (error) {
+      showTaskError(error.message);
+      save.disabled = false;
+    }
+  });
+  li.appendChild(form);
+  input.focus();
+  input.select();
+}
+
 async function toggleTask(id, completed) {
   clearTaskError();
   try {
@@ -240,12 +291,17 @@ function renderTasks() {
     const text = document.createElement('span');
     text.className = 'task-text';
     text.textContent = task.text;
+    const edit = document.createElement('button');
+    edit.className = 'edit-button';
+    edit.textContent = 'Editar';
+    edit.setAttribute('aria-label', `Editar tarefa: ${task.text}`);
+    edit.addEventListener('click', () => startTaskEdit(li, task));
     const remove = document.createElement('button');
     remove.className = 'delete-button';
     remove.textContent = 'Excluir';
     remove.setAttribute('aria-label', `Excluir tarefa: ${task.text}`);
     remove.addEventListener('click', () => deleteTask(task.id));
-    li.append(checkbox, text, remove);
+    li.append(checkbox, text, edit, remove);
     taskList.appendChild(li);
   });
   const completed = tasks.filter(task => task.completed).length;

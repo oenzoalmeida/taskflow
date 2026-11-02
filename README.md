@@ -95,9 +95,9 @@ pois os endpoints usam cookies com `credentials: true`). O cookie de sessão é 
 
 Sem verificação de e-mail e sem recuperação de senha.
 
-Rate limit de autenticação é por instância (in-memory). No serverless o limite efetivo é multiplicado pelo número de instâncias quentes.
+Rate limit de autenticação é persistido no PostgreSQL (tabela `auth_rate_limit`), então o limite vale por banco e não por instância — no serverless ele não é multiplicado pelo número de instâncias quentes.
 
-O título de uma tarefa não é editável após a criação.
+O título de uma tarefa pode ser editado depois da criação (botão "Editar" na lista, ou `PATCH /api/tasks/:id` com `title`); título vazio ou com mais de 240 caracteres é rejeitado e a data de criação é preservada.
 
 ## Autor
 

@@ -177,10 +177,26 @@ app.post('/api/tasks', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 app.patch('/api/tasks/:id', requireAuth, asyncHandler(async (req, res) => {
-  const completed = Boolean(req.body?.completed);
+  // Aceita title e/ou completed; campos ausentes ficam inalterados.
+  // user_id e created_at nunca entram no SET: autoria e data de criação são preservadas.
+  const body = req.body ?? {};
+  const updates = [];
+  const values = [];
+  if (Object.prototype.hasOwnProperty.call(body, 'completed')) {
+    values.push(Boolean(body.completed));
+    updates.push(`completed=$${values.length}`);
+  }
+  if (Object.prototype.hasOwnProperty.call(body, 'title')) {
+    const title = String(body.title || '').trim();
+    if (!title || title.length > 240) return res.status(400).json({ error: 'Informe uma tarefa válida' });
+    values.push(title);
+    updates.push(`title=$${values.length}`);
+  }
+  if (!updates.length) return res.status(400).json({ error: 'Nada para atualizar' });
+  values.push(req.params.id, req.user.sub);
   const { rows } = await pool.query(
-    'UPDATE tasks SET completed=$1, updated_at=now() WHERE id=$2 AND user_id=$3 RETURNING id,title,completed,created_at,updated_at',
-    [completed, req.params.id, req.user.sub]
+    `UPDATE tasks SET ${updates.join(', ')}, updated_at=now() WHERE id=$${values.length - 1} AND user_id=$${values.length} RETURNING id,title,completed,created_at,updated_at`,
+    values
   );
   if (!rows[0]) return res.status(404).json({ error: 'Tarefa não encontrada' });
   res.json({ task: rows[0] });

@@ -21,6 +21,8 @@ jobs:
         run: |
           test -f index.html
           test -f style.css
+      - name: Frontend unit tests (pluralização)
+        run: node --test tests/plural.test.js
 
   backend:
     runs-on: ubuntu-latest

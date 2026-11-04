@@ -73,7 +73,7 @@ Frontend: sirva os arquivos estáticos da raiz (por exemplo, com a extensão Liv
 
 ## Testes
 
-O CI verifica a sintaxe dos arquivos JavaScript (`node --check`) e a integridade dos arquivos essenciais. Não há suíte de testes automatizados funcionais.
+O CI verifica sintaxe e arquivos essenciais do frontend e executa testes automatizados do backend com PostgreSQL 16. A cobertura inclui regressões de segurança, limitador de autenticação, troca obrigatória de senha, CRUD de tarefas e isolamento entre usuários, além de smoke tests de login, rate limit e CORS. Isso não substitui testes completos de interface em navegador.
 
 ## Deploy
 

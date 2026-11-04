@@ -26,6 +26,8 @@ const loadingState = $('loadingState');
 const taskError = $('taskError');
 const emptyState = $('emptyState');
 const totalTasksElement = $('totalTasks');
+const totalTasksLabelElement = $('totalTasksLabel');
+const completedTasksLabelElement = $('completedTasksLabel');
 const completedTasksElement = $('completedTasks');
 const progressNumber = $('progressNumber');
 const filterButtons = document.querySelectorAll('.filter[data-filter]');
@@ -306,7 +308,9 @@ function renderTasks() {
   });
   const completed = tasks.filter(task => task.completed).length;
   totalTasksElement.textContent = tasks.length;
+  totalTasksLabelElement.textContent = pluralPt(tasks.length, 'tarefa', 'tarefas');
   completedTasksElement.textContent = completed;
+  completedTasksLabelElement.textContent = pluralPt(completed, 'concluída', 'concluídas');
   progressNumber.textContent = `${tasks.length ? Math.round((completed / tasks.length) * 100) : 0}%`;
   emptyState.classList.toggle('hidden', filtered.length > 0);
 }
@@ -347,8 +351,8 @@ adminButton.addEventListener('click', async () => {
     $('adminStats').innerHTML = `
       <div class="stat-card"><strong>${overview.users.total}</strong><span>usuários</span></div>
       <div class="stat-card"><strong>${overview.users.active}</strong><span>usuários ativos</span></div>
-      <div class="stat-card"><strong>${overview.tasks.total}</strong><span>tarefas</span></div>
-      <div class="stat-card"><strong>${overview.tasks.completed}</strong><span>concluídas</span></div>`;
+      <div class="stat-card"><strong>${overview.tasks.total}</strong><span>${pluralPt(overview.tasks.total, 'tarefa', 'tarefas')}</span></div>
+      <div class="stat-card"><strong>${overview.tasks.completed}</strong><span>${pluralPt(overview.tasks.completed, 'concluída', 'concluídas')}</span></div>`;
     renderUsers(users.users);
   } catch (error) {
     $('adminStats').innerHTML = '';

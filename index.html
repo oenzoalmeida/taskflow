@@ -97,8 +97,8 @@
         <button class="filter" data-filter="completed" type="button" aria-pressed="false">Concluídas</button>
       </div>
       <div class="task-info">
-        <span><strong id="totalTasks">0</strong> tarefas</span>
-        <span><strong id="completedTasks">0</strong> concluídas</span>
+        <span><strong id="totalTasks">0</strong> <span id="totalTasksLabel">tarefas</span></span>
+        <span><strong id="completedTasks">0</strong> <span id="completedTasksLabel">concluídas</span></span>
       </div>
       <ul id="taskList" class="task-list"></ul>
       <div id="loadingState" class="loading-state hidden">Carregando suas tarefas…</div>
@@ -118,6 +118,7 @@
   <a href="termos.html">Termos de Uso</a>
   <a href="privacidade.html">Política de Privacidade</a>
 </footer>
-<script src="script.js"></script>
+<script src="plural.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

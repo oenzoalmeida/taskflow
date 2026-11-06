@@ -79,7 +79,7 @@ O CI verifica sintaxe e arquivos essenciais do frontend e executa testes automat
 
 **Frontend:** Firebase Hosting (`firebase deploy --only hosting`, projeto `oenzoa-taskflow`, configurado em `firebase.json`/`.firebaserc`). URL: https://oenzoa-taskflow.web.app
 
-**Backend:** Vercel (função serverless em `backend/api/index.js` + `backend/vercel.json`, raiz do projeto Vercel = `backend/`). URL: https://taskflow-backend-rosy.vercel.app Variáveis de ambiente (Production): `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL=https://oenzoa-taskflow.web.app`. Não definir `NODE_ENV` nem `PORT` (a Vercel define), nem `BOOTSTRAP_ENABLED` no serverless.
+**Backend:** Vercel (função serverless em `backend/api/index.js` + `backend/vercel.json`, raiz do projeto Vercel = `backend/`). URL: `https://taskflow-backend-rosy.vercel.app` Variáveis de ambiente (Production): `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL=https://oenzoa-taskflow.web.app`. Não definir `NODE_ENV` nem `PORT` (a Vercel define), nem `BOOTSTRAP_ENABLED` no serverless.
 
 **Banco:** PostgreSQL gerenciado no Neon (string de conexão *pooled*, host `-pooler`, adequada ao ambiente serverless).
 

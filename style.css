@@ -93,3 +93,31 @@ td { color:#e2e8f0; }
   text-decoration: underline;
 }
 .link-button:hover { color: var(--text, #e7eaf3); }
+
+/* ---------- polimento de interface e movimento ----------
+   Referência de design: princípios de "fluid interfaces" das palestras de design da
+   Apple na WWDC — resposta imediata ao toque, animações curtas e com propósito.
+   Só transform/opacity; tudo respeita prefers-reduced-motion.
+   Nenhuma biblioteca nova, nenhuma funcionalidade alterada. */
+:root{--ease-out:cubic-bezier(.22,.61,.36,1)}
+
+/* Resposta imediata: o feedback acontece no pointer-down, não no release. */
+button,.filter,.secondary,.notfound-link,.link-button{transition:background-color .15s var(--ease-out),color .15s var(--ease-out),transform .18s var(--ease-out)}
+button:active,.filter:active,.secondary:active,.notfound-link:active,.link-button:active{transform:scale(.97);transition-duration:.06s}
+
+/* Foco visível consistente para quem navega por teclado. */
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #3b82f6;outline-offset:2px;border-radius:6px}
+
+/* Tipografia: números tabulares em estatísticas e tabelas. */
+.stat-card strong,.progress-box,td,th{font-variant-numeric:tabular-nums}
+
+/* Entradas curtas e com propósito, só no carregamento/renderização. */
+@keyframes tf-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.task-item,.stat-card,.auth-card{animation:tf-rise .35s var(--ease-out) both}
+.task-item:nth-child(2),.stat-card:nth-child(2){animation-delay:.05s}
+.task-item:nth-child(3),.stat-card:nth-child(3){animation-delay:.1s}
+.task-item:nth-child(n+4),.stat-card:nth-child(n+4){animation-delay:.15s}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}

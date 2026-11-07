@@ -3,6 +3,7 @@ import { databaseOptions, positiveInteger, proxyHops, createAuthRateLimit } from
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { csrfOriginReferer } from './csrf-origin.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pg from 'pg';
@@ -25,6 +26,7 @@ app.set('trust proxy', proxyHops());
 app.use(cors({ origin: frontendOrigins.length > 1 ? frontendOrigins : frontendUrl, credentials: true }));
 app.use(express.json({ limit: '256kb' }));
 app.use(cookieParser());
+app.use(csrfOriginReferer({ cookieName: 'taskflow_session', allowedOrigins: frontendOrigins }));
 
 const authRateLimit = createAuthRateLimit(pool, {
   max: positiveInteger(process.env.RATE_LIMIT_MAX, 10, 'RATE_LIMIT_MAX'),

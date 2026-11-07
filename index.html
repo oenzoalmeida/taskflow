@@ -101,7 +101,15 @@
         <span><strong id="completedTasks">0</strong> <span id="completedTasksLabel">concluídas</span></span>
       </div>
       <ul id="taskList" class="task-list"></ul>
-      <div id="loadingState" class="loading-state hidden">Carregando suas tarefas…</div>
+      <div id="loadingState" class="loading-state hidden" role="status">
+        <span class="visually-hidden">Carregando suas tarefas…</span>
+        <ul class="task-list skeleton-list" aria-hidden="true">
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:72%"></span></li>
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:48%"></span></li>
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:61%"></span></li>
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:38%"></span></li>
+        </ul>
+      </div>
       <div id="taskError" class="message hidden" aria-live="polite"></div>
       <div id="emptyState" class="empty-state hidden"><div class="empty-icon">✓</div><h2>Nenhuma tarefa por aqui</h2><p>Adicione uma tarefa para começar.</p></div>
     </div>

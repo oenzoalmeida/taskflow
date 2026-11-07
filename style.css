@@ -129,3 +129,43 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #3b82
   .skeleton{animation:none!important}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* ==================== PROPOSTA A: "PAPEL & TINTA" ====================
+   Editorial de papel: fundo creme, tinta quase-preta, serifa Newsreader
+   nos títulos, detalhes em vermelho-tijolo. O oposto do azul noturno. */
+body { background: #f7f4ec; color: #1c1a15; font-family: "Inter", sans-serif; }
+.container { padding: 48px 20px; }
+.task-app, .auth-card { background: #fffdf6; border: 1px solid #e3dcc8; border-radius: 20px; box-shadow: 0 18px 50px rgba(84, 72, 42, .14); }
+.auth-card h1, .topbar h1 { font-family: "Newsreader", Georgia, serif; font-weight: 600; letter-spacing: -0.01em; color: #1c1a15; }
+.tag { color: #c2451e; letter-spacing: 3px; }
+.muted, .message, .header p, .topbar p { color: #7a7261; }
+.auth-form input, .task-form input { background: #fff; border: 1px solid #cfc6ab; color: #1c1a15; }
+.auth-form input:focus, .task-form input:focus { border-color: #c2451e; box-shadow: 0 0 0 3px rgba(194, 69, 30, .12); }
+.auth-form button, .task-form button { background: #c2451e; border-radius: 999px; }
+.auth-form button:hover, .task-form button:hover { background: #a33818; }
+.filter, .secondary { color: #6e675a; border-color: #cfc6ab; border-radius: 999px; }
+.filter:hover, .secondary:hover { color: #1c1a15; border-color: #8f8672; background: #f4efe0; }
+.filter.active { background: #1c1a15; border-color: #1c1a15; color: #f7f4ec; }
+.topbar { border-bottom: 2px solid #1c1a15; }
+.progress-box { background: #f4efe0; border: 1px solid #e3dcc8; border-radius: 16px; }
+.progress-box span { color: #c2451e; font-family: "Newsreader", Georgia, serif; font-size: 34px; }
+.progress-box small { color: #7a7261; }
+.task-info { color: #7a7261; border-bottom: 1px dashed #cfc6ab; }
+.task-info strong { color: #1c1a15; }
+.task-item { background: #fff; border: 1px solid #e3dcc8; border-radius: 14px; }
+.task-item:hover { border-color: #c2451e; }
+.task-text { color: #26231c; font-weight: 500; }
+.task-item.completed .task-text { color: #9a927e; }
+.task-checkbox { color: #fff; }
+.task-checkbox::before { border: 2px solid #8f8672; border-radius: 6px; }
+.task-item.completed .task-checkbox::before { background: #2e7d5b; border-color: #2e7d5b; border-radius: 6px; }
+.auth-tabs .filter.active { background: #c2451e; border-color: #c2451e; color: #fff; }
+.privacy-notice, .privacy-notice a { color: #7a7261; }
+
+/* Proposta A: no mobile o texto da tarefa ocupa a linha e as ações vão para baixo */
+@media (max-width: 760px) {
+  .task-item { flex-wrap: wrap; }
+  .task-text { flex: 1 1 60%; min-width: 0; }
+  .task-item .edit-button, .task-item .delete-button { margin-left: 44px; }
+  .task-item .delete-button { margin-left: 0; }
+}

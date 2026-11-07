@@ -161,3 +161,11 @@ body { background: #f7f4ec; color: #1c1a15; font-family: "Inter", sans-serif; }
 .task-item.completed .task-checkbox::before { background: #2e7d5b; border-color: #2e7d5b; border-radius: 6px; }
 .auth-tabs .filter.active { background: #c2451e; border-color: #c2451e; color: #fff; }
 .privacy-notice, .privacy-notice a { color: #7a7261; }
+
+/* Proposta A: no mobile o texto da tarefa ocupa a linha e as ações vão para baixo */
+@media (max-width: 760px) {
+  .task-item { flex-wrap: wrap; }
+  .task-text { flex: 1 1 60%; min-width: 0; }
+  .task-item .edit-button, .task-item .delete-button { margin-left: 44px; }
+  .task-item .delete-button { margin-left: 0; }
+}

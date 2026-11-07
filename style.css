@@ -129,3 +129,42 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #3b82
   .skeleton{animation:none!important}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* ==================== PROPOSTA B: "TERMINAL" ====================
+   Terminal de desenvolvedor: preto-esverdeado, verde matrix, Space Mono
+   em tudo, tarefas como linhas de checklist de console. */
+body { background: #0b0f0c; color: #d3f2dd; font-family: "Space Mono", monospace; }
+.container { padding: 48px 20px; }
+.task-app, .auth-card { background: #10160f; border: 1px solid #24402c; border-radius: 8px; box-shadow: 0 0 0 1px #0b0f0c, 0 24px 60px rgba(0, 0, 0, .5); }
+.auth-card h1, .topbar h1 { font-family: "Space Mono", monospace; font-weight: 700; color: #3fb950; }
+.auth-card h1::before { content: "> "; color: #2d7a3f; }
+.tag { color: #3fb950; letter-spacing: 3px; }
+.tag::before { content: "// "; }
+.muted, .message, .header p, .topbar p { color: #6b8f76; }
+.auth-form input, .task-form input { background: #0b0f0c; border: 1px solid #2d4a36; color: #d3f2dd; border-radius: 6px; font-family: "Space Mono", monospace; }
+.auth-form input:focus, .task-form input:focus { border-color: #3fb950; box-shadow: 0 0 0 3px rgba(63, 185, 80, .15); }
+.auth-form button, .task-form button { background: #3fb950; color: #0b0f0c; border-radius: 6px; font-family: "Space Mono", monospace; font-weight: 700; }
+.auth-form button:hover, .task-form button:hover { background: #56d364; }
+.filter, .secondary { color: #6b8f76; border-color: #2d4a36; border-radius: 6px; font-family: "Space Mono", monospace; }
+.filter:hover, .secondary:hover { color: #d3f2dd; border-color: #3fb950; background: #131c11; }
+.filter.active { background: #3fb950; border-color: #3fb950; color: #0b0f0c; }
+.topbar { border-bottom: 1px solid #24402c; }
+.progress-box { background: #0b0f0c; border: 1px solid #24402c; border-radius: 8px; }
+.progress-box span { color: #3fb950; font-family: "Space Mono", monospace; }
+.progress-box small { color: #6b8f76; }
+.task-info { color: #6b8f76; border-bottom: 1px dashed #24402c; }
+.task-info strong { color: #d3f2dd; }
+.task-item { background: #0d120e; border: 1px solid #1c2b21; border-radius: 6px; }
+.task-item:hover { border-color: #3fb950; }
+.task-text { color: #d3f2dd; }
+.task-text::before { content: "[  ] "; color: #6b8f76; font-weight: 700; }
+.task-item.completed .task-text::before { content: "[✓] "; color: #3fb950; }
+.task-item.completed .task-text { color: #517a5e; }
+.task-checkbox { color: #0b0f0c; }
+.task-checkbox::before { border: 2px solid #2d4a36; border-radius: 4px; }
+.task-item.completed .task-checkbox::before { background: #3fb950; border-color: #3fb950; border-radius: 4px; }
+.privacy-notice, .privacy-notice a { color: #6b8f76; }
+
+/* Refinamento B: o prefixo [ ]/[✓] carrega o afordance; esconde a caixa duplicada */
+.task-checkbox { color: transparent; }
+.task-checkbox::before { display: none; }

@@ -4,7 +4,7 @@ Gerenciador de tarefas full stack com autenticação, dados por usuário e paine
 
 ## Demonstração
 
-**Aplicação:** https://oenzoa-taskflow.web.app
+**Aplicação:** https://taskflow-backend-rosy.vercel.app (o endereço antigo oenzoa-taskflow.web.app redireciona para ele)
 
 ## Acesso demo
 
@@ -77,19 +77,15 @@ O CI verifica sintaxe e arquivos essenciais do frontend e executa testes automat
 
 ## Deploy
 
-**Frontend:** Firebase Hosting (`firebase deploy --only hosting`, projeto `oenzoa-taskflow`, configurado em `firebase.json`/`.firebaserc`). URL: https://oenzoa-taskflow.web.app
+**Interface e API (mesma origem):** Vercel. A interface (arquivos da raiz, copiados para `backend/public/` com `node backend/scripts/sync-public.mjs`; o CI confere que as cópias estão iguais) é servida pelo próprio backend (função serverless em `backend/api/index.js` + `backend/vercel.json`, raiz do projeto Vercel = `backend/`). URL: https://taskflow-backend-rosy.vercel.app. Variáveis de ambiente (Production): `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL` (origens extras permitidas, opcional). Não definir `NODE_ENV` nem `PORT`, nem `BOOTSTRAP_ENABLED` no serverless.
 
-**Backend:** Vercel (função serverless em `backend/api/index.js` + `backend/vercel.json`, raiz do projeto Vercel = `backend/`). URL: `https://taskflow-backend-rosy.vercel.app` Variáveis de ambiente (Production): `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL=https://oenzoa-taskflow.web.app`. Não definir `NODE_ENV` nem `PORT` (a Vercel define), nem `BOOTSTRAP_ENABLED` no serverless.
+**Endereço antigo:** Firebase Hosting (projeto `oenzoa-taskflow`, pasta `redirect/`) apenas redireciona (301) para o endereço acima.
 
 **Banco:** PostgreSQL gerenciado no Neon (string de conexão *pooled*, host `-pooler`, adequada ao ambiente serverless).
 
-### CORS e cookies (frontend Firebase + backend Vercel)
+### Cookies e CSRF
 
-O backend aceita `FRONTEND_URL` com **uma única origem** ou com uma **lista separada por
-vírgula**. A resposta CORS reflete a origem da requisição quando ela está na lista (nunca `*`,
-pois os endpoints usam cookies com `credentials: true`). O cookie de sessão é emitido com
-`SameSite=None; Secure; HttpOnly`, o que faz o login cross-site
-(`oenzoa-taskflow.web.app` ↔ `taskflow-backend-rosy.vercel.app`) funcionar sem alteração.
+Como a interface e a API ficam na mesma origem, o cookie de sessão é `HttpOnly; Secure; SameSite=Lax` (first-party). Navegadores como o Safari bloqueiam cookies entre domínios diferentes, o que quebrava o login quando a interface ficava em `web.app` e a API em `vercel.app`. A verificação de `Origin`/`Referer` em mutações com cookie continua ativa e aceita a própria origem e as listadas em `FRONTEND_URL`.
 
 ## Limitações conhecidas
 

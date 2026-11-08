@@ -16,3 +16,4 @@ test('dois ou mais usa plural', () => {
   assert.equal(pluralPt(2, 'tarefa', 'tarefas'), 'tarefas');
   assert.equal(pluralPt(7, 'concluída', 'concluídas'), 'concluídas');
 });
+require('./public-sync.test.js');

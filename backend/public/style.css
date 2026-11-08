@@ -1,0 +1,171 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { min-height: 100vh; font-family: "Inter", sans-serif; background: radial-gradient(circle at top left,#1e3a8a,transparent 35%),#0f172a; color:#f8fafc; }
+button,input { font: inherit; }
+button { cursor:pointer; }
+.container { width:100%; min-height:100vh; display:flex; justify-content:center; align-items:flex-start; padding:70px 20px; }
+.task-app,.auth-card { width:100%; max-width:850px; background:rgba(15,23,42,.94); border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:36px; box-shadow:0 30px 70px rgba(0,0,0,.35); }
+.auth-card { max-width:460px; margin-top:40px; }
+.auth-card h1 { font-size:34px; margin:8px 0 10px; }
+.muted,.message,.header p,.topbar p { color:#94a3b8; }
+.message { margin-top:12px; min-height:20px; }
+.tag { display:inline-block; margin-bottom:10px; color:#60a5fa; font-size:12px; font-weight:700; letter-spacing:2px; }
+.auth-tabs,.filters,.topbar-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.auth-tabs { margin:28px 0 16px; }
+.auth-form { display:flex; flex-direction:column; gap:12px; }
+.auth-form input,.task-form input { background:#111827; border:1px solid #64748b; border-radius:12px; padding:15px 16px; color:white; outline:none; }
+.auth-form input:focus,.task-form input:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+.auth-form button,.task-form button { border:none; border-radius:12px; padding:14px 22px; background:#2563eb; color:white; font-weight:600; }
+.auth-form button:hover,.task-form button:hover { background:#1d4ed8; }
+.topbar,.header,.admin-heading { display:flex; justify-content:space-between; align-items:center; gap:24px; }
+.topbar { margin-bottom:32px; padding-bottom:24px; border-bottom:1px solid #1e293b; }
+.topbar h1 { font-size:40px; margin-bottom:8px; }
+.header { margin-bottom:28px; }
+.progress-box { min-width:110px; text-align:center; padding:18px; border-radius:18px; background:#111827; border:1px solid #1e293b; }
+.progress-box span { display:block; color:#60a5fa; font-size:28px; font-weight:700; }
+.progress-box small { color:#94a3b8; }
+.task-form { display:flex; gap:12px; margin-bottom:25px; }
+.task-form input { flex:1; min-width:0; }
+.filter,.secondary { background:transparent; color:#94a3b8; border:1px solid #64748b; padding:9px 14px; border-radius:10px; transition:.2s; min-height:44px; display:inline-flex; align-items:center; }
+.filter:hover,.secondary:hover { color:white; border-color:#475569; }
+.filter.active { background:#2563eb; border-color:#2563eb; color:white; }
+.filters { margin-bottom:20px; }
+.task-info { display:flex; justify-content:space-between; gap:20px; color:#94a3b8; font-size:13px; padding-bottom:20px; border-bottom:1px solid #1e293b; }
+.task-info strong { color:white; }
+.task-list { list-style:none; margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+.task-item { display:flex; align-items:center; gap:12px; background:#111827; border:1px solid #1e293b; border-radius:14px; padding:15px; }
+.task-checkbox { width:44px; height:44px; margin:-11px -6px -11px -11px; border:none; background:transparent; color:white; flex-shrink:0; display:grid; place-items:center; position:relative; isolation:isolate; }
+.task-checkbox::before { content:''; position:absolute; inset:11px; z-index:-1; border:2px solid #64748b; border-radius:50%; }
+.task-item.completed .task-checkbox::before { background:#15803d; border-color:#15803d; }
+.task-text { flex:1; color:#e2e8f0; }
+.task-item.completed .task-text { color:#94a3b8; text-decoration:line-through; }
+.delete-button { border:none; background:transparent; color:#94a3b8; padding:7px 10px; border-radius:8px; min-height:44px; display:inline-flex; align-items:center; }
+.delete-button:hover { color:#ef4444; background:rgba(239,68,68,.08); }
+.edit-button { border:none; background:transparent; color:#94a3b8; padding:7px 10px; border-radius:8px; min-height:44px; display:inline-flex; align-items:center; }
+.edit-button:hover { color:#60a5fa; background:rgba(96,165,250,.08); }
+.task-edit-form { display:flex; align-items:center; gap:10px; width:100%; }
+.task-edit-input { flex:1; min-width:0; background:#0b1220; border:1px solid #64748b; border-radius:8px; color:#e2e8f0; padding:11px 12px; font-size:14px; }
+.task-edit-input:focus { outline:2px solid #2563eb; outline-offset:1px; }
+.empty-state { text-align:center; padding:55px 20px 25px; }
+.empty-icon { width:60px; height:60px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; border-radius:50%; background:#111827; border:1px solid #334155; color:#60a5fa; font-size:26px; }
+.empty-state h2 { font-size:18px; margin-bottom:6px; }
+.empty-state p { color:#94a3b8; font-size:14px; }
+.admin-heading { margin-bottom:22px; }
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+.stat-card { background:#111827; border:1px solid #1e293b; border-radius:14px; padding:18px; }
+.stat-card strong { display:block; font-size:28px; color:#60a5fa; }
+.stat-card span { color:#94a3b8; font-size:13px; }
+.admin-table-wrap { overflow-x:auto; border:1px solid #1e293b; border-radius:14px; }
+table { width:100%; border-collapse:collapse; min-width:680px; }
+th,td { text-align:left; padding:14px 16px; border-bottom:1px solid #1e293b; }
+th { color:#94a3b8; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+td { color:#e2e8f0; }
+.hidden { display:none !important; }
+.field-hint { color:#94a3b8; font-size:13px; }
+.loading-state { text-align:center; color:#94a3b8; padding:40px 20px; }
+/* Telas esqueleto: itens falsos no formato da lista substituem o texto de carregamento */
+.skeleton { display:block; border-radius:8px; background:#1e293b; animation:tf-skeleton 1.5s ease-in-out infinite; }
+@keyframes tf-skeleton { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+.skeleton-check { width:22px; height:22px; border-radius:50%; flex-shrink:0; }
+.skeleton-line { height:14px; }
+.skeleton-list { margin-top:20px; }
+.visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+.privacy-notice { margin-top:14px; font-size:13px; color:#94a3b8; }
+.privacy-notice a { color:#60a5fa; }
+.legal-card { max-width:760px; }
+.legal-card h1 { font-size:28px; }
+.legal-card h2 { font-size:16px; margin:22px 0 6px; color:#e2e8f0; }
+.legal-card p { color:#cbd5e1; font-size:14px; line-height:1.65; }
+.legal-card p.muted { margin-top:24px; }
+.legal-card a { color:#60a5fa; }
+.notfound-card { text-align:center; margin-top:60px; }
+.notfound-card h1 { font-size:56px; }
+.notfound-actions { margin-top:22px; }
+.notfound-link { display:inline-block; border:none; border-radius:12px; padding:14px 22px; background:#2563eb; color:white; font-weight:600; text-decoration:none; }
+.notfound-link:hover { background:#1d4ed8; }
+.danger-link { border:none; background:transparent; color:#f87171; padding:9px 10px; border-radius:10px; font-size:14px; min-height:44px; display:inline-flex; align-items:center; }
+.danger-link:hover { color:#ef4444; text-decoration:underline; }
+.app-footer { display:flex; justify-content:center; gap:18px; padding:18px 20px 26px; color:#94a3b8; font-size:13px; }
+.app-footer a { color:#94a3b8; }
+.app-footer a:hover { color:white; }
+@media (max-width:760px) { .container{padding:28px 14px}.task-app,.auth-card{padding:24px 18px}.topbar,.header,.admin-heading{align-items:flex-start;flex-direction:column}.topbar-actions{width:100%}.topbar h1{font-size:34px}.task-form{flex-direction:column}.stats-grid{grid-template-columns:repeat(2,1fr)} }
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--muted, #8b93a7);
+  font: inherit;
+  font-size: 0.9rem;
+  margin-top: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.link-button:hover { color: var(--text, #e7eaf3); }
+
+/* ---------- polimento de interface e movimento ----------
+   Referência de design: princípios de "fluid interfaces" das palestras de design da
+   Apple na WWDC — resposta imediata ao toque, animações curtas e com propósito.
+   Só transform/opacity; tudo respeita prefers-reduced-motion.
+   Nenhuma biblioteca nova, nenhuma funcionalidade alterada. */
+:root{--ease-out:cubic-bezier(.22,.61,.36,1)}
+
+/* Resposta imediata: o feedback acontece no pointer-down, não no release. */
+button,.filter,.secondary,.notfound-link,.link-button{transition:background-color .15s var(--ease-out),color .15s var(--ease-out),transform .18s var(--ease-out)}
+button:active,.filter:active,.secondary:active,.notfound-link:active,.link-button:active{transform:scale(.97);transition-duration:.06s}
+
+/* Foco visível consistente para quem navega por teclado. */
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #3b82f6;outline-offset:2px;border-radius:6px}
+
+/* Tipografia: números tabulares em estatísticas e tabelas. */
+.stat-card strong,.progress-box,td,th{font-variant-numeric:tabular-nums}
+
+/* Entradas curtas e com propósito, só no carregamento/renderização. */
+@keyframes tf-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.task-item,.stat-card,.auth-card{animation:tf-rise .35s var(--ease-out) both}
+.task-item:nth-child(2),.stat-card:nth-child(2){animation-delay:.05s}
+.task-item:nth-child(3),.stat-card:nth-child(3){animation-delay:.1s}
+.task-item:nth-child(n+4),.stat-card:nth-child(n+4){animation-delay:.15s}
+
+@media (prefers-reduced-motion: reduce){
+  .skeleton{animation:none!important}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ==================== PROPOSTA A: "PAPEL & TINTA" ====================
+   Editorial de papel: fundo creme, tinta quase-preta, serifa Newsreader
+   nos títulos, detalhes em vermelho-tijolo. O oposto do azul noturno. */
+body { background: #f7f4ec; color: #1c1a15; font-family: "Inter", sans-serif; }
+.container { padding: 48px 20px; }
+.task-app, .auth-card { background: #fffdf6; border: 1px solid #e3dcc8; border-radius: 20px; box-shadow: 0 18px 50px rgba(84, 72, 42, .14); }
+.auth-card h1, .topbar h1 { font-family: "Newsreader", Georgia, serif; font-weight: 600; letter-spacing: -0.01em; color: #1c1a15; }
+.tag { color: #c2451e; letter-spacing: 3px; }
+.muted, .message, .header p, .topbar p { color: #7a7261; }
+.auth-form input, .task-form input { background: #fff; border: 1px solid #cfc6ab; color: #1c1a15; }
+.auth-form input:focus, .task-form input:focus { border-color: #c2451e; box-shadow: 0 0 0 3px rgba(194, 69, 30, .12); }
+.auth-form button, .task-form button { background: #c2451e; border-radius: 999px; }
+.auth-form button:hover, .task-form button:hover { background: #a33818; }
+.filter, .secondary { color: #6e675a; border-color: #cfc6ab; border-radius: 999px; }
+.filter:hover, .secondary:hover { color: #1c1a15; border-color: #8f8672; background: #f4efe0; }
+.filter.active { background: #1c1a15; border-color: #1c1a15; color: #f7f4ec; }
+.topbar { border-bottom: 2px solid #1c1a15; }
+.progress-box { background: #f4efe0; border: 1px solid #e3dcc8; border-radius: 16px; }
+.progress-box span { color: #c2451e; font-family: "Newsreader", Georgia, serif; font-size: 34px; }
+.progress-box small { color: #7a7261; }
+.task-info { color: #7a7261; border-bottom: 1px dashed #cfc6ab; }
+.task-info strong { color: #1c1a15; }
+.task-item { background: #fff; border: 1px solid #e3dcc8; border-radius: 14px; }
+.task-item:hover { border-color: #c2451e; }
+.task-text { color: #26231c; font-weight: 500; }
+.task-item.completed .task-text { color: #9a927e; }
+.task-checkbox { color: #fff; }
+.task-checkbox::before { border: 2px solid #8f8672; border-radius: 6px; }
+.task-item.completed .task-checkbox::before { background: #2e7d5b; border-color: #2e7d5b; border-radius: 6px; }
+.auth-tabs .filter.active { background: #c2451e; border-color: #c2451e; color: #fff; }
+.privacy-notice, .privacy-notice a { color: #7a7261; }
+
+/* Proposta A: no mobile o texto da tarefa ocupa a linha e as ações vão para baixo */
+@media (max-width: 760px) {
+  .task-item { flex-wrap: wrap; }
+  .task-text { flex: 1 1 60%; min-width: 0; }
+  .task-item .edit-button, .task-item .delete-button { margin-left: 44px; }
+  .task-item .delete-button { margin-left: 0; }
+}

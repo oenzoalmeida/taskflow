@@ -1,5 +1,132 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
-  <head><meta charset="utf-8"><title>TaskFlow API</title></head>
-  <body>TaskFlow API — consulte <a href="/health">/health</a></body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow | Gerenciador de Tarefas</title>
+  <meta name="description" content="Gerenciador de tarefas full stack com autenticação e dados por usuário.">
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TaskFlow">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:title" content="TaskFlow — Gerenciador de Tarefas">
+  <meta property="og:description" content="Gerenciador de tarefas full stack com autenticação e dados por usuário.">
+  <meta property="og:url" content="https://taskflow-backend-rosy.vercel.app/">
+  <meta property="og:image" content="https://taskflow-backend-rosy.vercel.app/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="TaskFlow — gerenciador de tarefas full stack">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TaskFlow — Gerenciador de Tarefas">
+  <meta name="twitter:description" content="Gerenciador de tarefas full stack com autenticação e dados por usuário.">
+  <meta name="twitter:image" content="https://taskflow-backend-rosy.vercel.app/og-image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="container">
+  <section id="authView" class="auth-card">
+    <span class="tag">TASKFLOW</span>
+    <h1>Entre na sua conta</h1>
+    <p class="muted">Suas tarefas ficam vinculadas ao seu usuário.</p>
+    <div class="auth-tabs">
+      <button id="loginTab" class="filter active" type="button">Entrar</button>
+      <button id="registerTab" class="filter" type="button">Criar conta</button>
+    </div>
+    <form id="authForm" class="auth-form">
+      <label class="visually-hidden" for="nameInput">Seu nome</label>
+      <input id="nameInput" class="hidden" type="text" placeholder="Seu nome" autocomplete="name">
+      <label class="visually-hidden" for="emailInput">E-mail</label>
+      <input id="emailInput" type="email" placeholder="E-mail" autocomplete="email" required>
+      <label class="visually-hidden" for="passwordInput">Senha</label>
+      <input id="passwordInput" type="password" placeholder="Senha" autocomplete="current-password" minlength="12" required>
+      <p id="passwordHint" class="field-hint hidden">Use pelo menos 12 caracteres.</p>
+      <button id="authSubmit" type="submit">Entrar</button>
+    </form>
+    <p id="privacyNotice" class="privacy-notice hidden">Seus dados são usados apenas para autenticação e funcionamento do serviço. Saiba mais na <a href="privacidade.html">Política de Privacidade</a>.</p>
+    <p id="authMessage" class="message" aria-live="polite"></p>
+  </section>
+
+  <section id="passwordView" class="auth-card hidden">
+    <span class="tag">SEGURANÇA</span>
+    <h1>Crie sua senha definitiva</h1>
+    <p class="muted">Este acesso usa uma senha temporária. Para continuar, defina uma nova senha.</p>
+    <form id="passwordForm" class="auth-form">
+      <label class="visually-hidden" for="currentPasswordInput">Senha temporária</label>
+      <input id="currentPasswordInput" type="password" placeholder="Senha temporária" autocomplete="current-password" required>
+      <label class="visually-hidden" for="newPasswordInput">Nova senha</label>
+      <input id="newPasswordInput" type="password" placeholder="Nova senha" autocomplete="new-password" minlength="12" required>
+      <label class="visually-hidden" for="confirmPasswordInput">Confirme a nova senha</label>
+      <input id="confirmPasswordInput" type="password" placeholder="Confirme a nova senha" autocomplete="new-password" minlength="12" required>
+      <p class="field-hint">Use pelo menos 12 caracteres. Ao trocar, as sessões antigas são encerradas.</p>
+      <button id="passwordSubmit" type="submit">Definir nova senha</button>
+    </form>
+    <button id="passwordLogout" type="button" class="link-button">Sair sem trocar a senha</button>
+    <p id="passwordMessage" class="message" aria-live="polite"></p>
+  </section>
+
+  <section id="taskView" class="task-app hidden">
+    <div class="topbar">
+      <div>
+        <span class="tag">ORGANIZAÇÃO</span>
+        <h1>TaskFlow</h1>
+        <p id="welcomeText">Organize suas tarefas e acompanhe seu progresso.</p>
+      </div>
+      <div class="topbar-actions">
+        <button id="adminButton" class="secondary hidden" type="button">Admin</button>
+        <button id="logoutButton" class="secondary" type="button">Sair</button>
+        <button id="deleteAccountButton" class="danger-link" type="button">Excluir conta</button>
+      </div>
+    </div>
+
+    <div id="userArea">
+      <div class="header">
+        <div><p>Seu painel pessoal</p></div>
+        <div class="progress-box"><span id="progressNumber">0%</span><small>concluído</small></div>
+      </div>
+      <form id="taskForm" class="task-form">
+        <label class="visually-hidden" for="taskInput">Nova tarefa</label>
+        <input type="text" id="taskInput" placeholder="Digite uma nova tarefa..." autocomplete="off" required>
+        <button type="submit">Adicionar</button>
+      </form>
+      <div class="filters" role="group" aria-label="Filtrar tarefas">
+        <button class="filter active" data-filter="all" type="button" aria-pressed="true">Todas</button>
+        <button class="filter" data-filter="pending" type="button" aria-pressed="false">Pendentes</button>
+        <button class="filter" data-filter="completed" type="button" aria-pressed="false">Concluídas</button>
+      </div>
+      <div class="task-info">
+        <span><strong id="totalTasks">0</strong> <span id="totalTasksLabel">tarefas</span></span>
+        <span><strong id="completedTasks">0</strong> <span id="completedTasksLabel">concluídas</span></span>
+      </div>
+      <ul id="taskList" class="task-list"></ul>
+      <div id="loadingState" class="loading-state hidden" role="status">
+        <span class="visually-hidden">Carregando suas tarefas…</span>
+        <ul class="task-list skeleton-list" aria-hidden="true">
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:72%"></span></li>
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:48%"></span></li>
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:61%"></span></li>
+          <li class="task-item"><span class="skeleton skeleton-check"></span><span class="skeleton skeleton-line" style="width:38%"></span></li>
+        </ul>
+      </div>
+      <div id="taskError" class="message hidden" aria-live="polite"></div>
+      <div id="emptyState" class="empty-state hidden"><div class="empty-icon">✓</div><h2>Nenhuma tarefa por aqui</h2><p>Adicione uma tarefa para começar.</p></div>
+    </div>
+
+    <div id="adminArea" class="hidden">
+      <div class="admin-heading"><div><span class="tag">ADMINISTRAÇÃO</span><h2>Painel administrativo</h2></div><button id="backToTasks" class="secondary" type="button">Minhas tarefas</button></div>
+      <div id="adminStats" class="stats-grid"></div>
+      <div class="admin-table-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Status</th><th>Ação</th></tr></thead><tbody id="usersTable"></tbody></table></div>
+    </div>
+  </section>
+</main>
+<footer class="app-footer">
+  <span>TaskFlow</span>
+  <a href="termos.html">Termos de Uso</a>
+  <a href="privacidade.html">Política de Privacidade</a>
+</footer>
+<script src="plural.js"></script>
+  <script src="script.js"></script>
+</body>
 </html>

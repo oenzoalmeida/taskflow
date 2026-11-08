@@ -1,4 +1,4 @@
-const API = 'https://taskflow-backend-rosy.vercel.app';
+const API = '';
 const $ = (id) => document.getElementById(id);
 
 const authView = $('authView');
@@ -47,7 +47,7 @@ let currentFilter = 'all';
 
 async function api(path, options = {}) {
   const response = await fetch(`${API}${path}`, {
-    credentials: 'include',
+    credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options
   });

@@ -7,7 +7,8 @@ import { csrfOriginReferer } from './csrf-origin.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import pg from 'pg';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 const { Pool } = pg;
 const app = express();
@@ -36,7 +37,8 @@ const authRateLimit = createAuthRateLimit(pool, {
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  // Interface e API na mesma origem: cookie first-party (funciona no Safari).
+  sameSite: 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000,
   path: '/'
 };
@@ -254,6 +256,26 @@ app.patch('/api/admin/users/:id', requireAuth, requireAdmin, asyncHandler(async 
   const { rows } = await pool.query('UPDATE users SET active=$1 WHERE id=$2 RETURNING id,name,email,role,active,created_at', [active, req.params.id]);
   res.json({ user: rows[0] });
 }));
+
+// Interface web servida pela mesma origem da API (cookies first-party, HttpOnly
+// + verificação de Origin). Safari bloqueia cookies entre domínios diferentes.
+const publicDir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public');
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
+app.use(express.static(publicDir, {
+  setHeaders(res, file) {
+    if (/\.(html|js|css)$/.test(file)) res.setHeader('Cache-Control', 'max-age=0, must-revalidate');
+  }
+}));
+app.use((req, res, next) => {
+  if (req.method !== 'GET' || req.path.startsWith('/api/') || req.path === '/health') return next();
+  res.status(404).sendFile(path.join(publicDir, '404.html'));
+});
 
 // Último middleware da cadeia: qualquer erro não tratado (ex.: banco fora do
 // ar) recebe resposta 500 genérica em JSON, sem expor stack traces ou detalhas

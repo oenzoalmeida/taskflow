@@ -32,16 +32,20 @@ export function csrfOriginReferer({ cookieName, allowedOrigins }) {
   return function csrfOriginRefererMiddleware(req, res, next) {
     if (SAFE_METHODS.has(req.method)) return next();
     if (!req.cookies || !req.cookies[cookieName]) return next();
+    // Mesma origem (interface servida pelo próprio backend): Origin igual ao Host.
+    const host = (req.get('Host') || '').toLowerCase();
+    const selfOrigins = host ? new Set([`https://${host}`, `http://${host}`]) : new Set();
+    const permitido = (o) => allowed.has(o) || selfOrigins.has(o);
     const negado = () => res.status(403).json({ error: 'Origem da requisição não permitida.' });
     const rawOrigin = req.get('Origin');
     if (rawOrigin && rawOrigin.trim()) {
       // Navegadores sempre enviam Origin em POST cross-site: valor presente
       // precisa estar na allowlist ("null" incluído, nunca é permitido).
       const origin = normalizeOrigin(rawOrigin);
-      return origin && allowed.has(origin) ? next() : negado();
+      return origin && permitido(origin) ? next() : negado();
     }
     const referer = originOf(req.get('Referer'));
-    if (referer) return allowed.has(referer) ? next() : negado();
+    if (referer) return permitido(referer) ? next() : negado();
     return next(); // sem Origin/Referer: cliente fora do navegador (curl, testes)
   };
 }

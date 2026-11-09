@@ -169,3 +169,60 @@ body { background: #f7f4ec; color: #1c1a15; font-family: "Inter", sans-serif; }
   .task-item .edit-button, .task-item .delete-button { margin-left: 44px; }
   .task-item .delete-button { margin-left: 0; }
 }
+
+/* ==========================================================================
+   PASSADA VISÍVEL 2 (nov/2026) - Papel & Tinta, edição de capa
+   Textura de papel, kicker em chip de tinta, títulos com marca-texto
+   terracota, cards com borda de tinta e sombra deslocada de impressão.
+   Apenas CSS: nenhum id, texto ou regra alterada.
+   ========================================================================== */
+body {
+  background:
+    radial-gradient(40rem 22rem at 85% -10%, rgba(194, 69, 30, 0.10), transparent 60%),
+    repeating-linear-gradient(0deg, transparent 0 26px, rgba(28, 26, 21, 0.025) 26px 27px),
+    #f7f4ec;
+}
+.tag {
+  background: #1c1a15;
+  color: #f7f4ec !important;
+  padding: 4px 12px;
+  border-radius: 2px;
+  letter-spacing: 4px;
+}
+.auth-card h1, .topbar h1 {
+  display: inline-block;
+  background: linear-gradient(transparent 58%, rgba(194, 69, 30, 0.32) 58%);
+  padding: 0 6px;
+}
+.task-app, .auth-card {
+  border: 2px solid #1c1a15;
+  box-shadow: 10px 10px 0 rgba(28, 26, 21, 0.14), 0 18px 50px rgba(84, 72, 42, .14);
+}
+.auth-form button, .task-form button {
+  border: 2px solid #1c1a15;
+  box-shadow: 4px 4px 0 #1c1a15;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.auth-form button:hover, .task-form button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 #1c1a15;
+}
+.auth-form button:active, .task-form button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #1c1a15;
+}
+.progress-box {
+  background: #c2451e;
+  border: 2px solid #1c1a15;
+  box-shadow: 5px 5px 0 rgba(28, 26, 21, 0.85);
+}
+.progress-box span { color: #fffdf6; }
+.progress-box small { color: #f4e3d8; }
+.filter.active { box-shadow: 3px 3px 0 rgba(28, 26, 21, 0.8); }
+.task-item { box-shadow: 3px 3px 0 rgba(28, 26, 21, 0.08); }
+.task-item:hover { box-shadow: 4px 4px 0 rgba(194, 69, 30, 0.35); }
+@media (prefers-reduced-motion: reduce) {
+  .auth-form button, .task-form button { transition: none; }
+  .auth-form button:hover, .task-form button:hover,
+  .auth-form button:active, .task-form button:active { transform: none; }
+}

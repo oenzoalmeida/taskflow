@@ -390,3 +390,27 @@ function escapeHtml(value) {
 }
 
 restoreSession();
+
+// Mostrar/ocultar senha: envolve cada campo de senha dos formulários de acesso
+// com um botão-olho. Só visual - o input original mantém id, validação e
+// autocomplete, e nada muda no envio.
+document.querySelectorAll('.auth-form input[type="password"]').forEach((pwInput) => {
+  const field = document.createElement('div');
+  field.className = 'pw-field';
+  pwInput.parentNode.insertBefore(field, pwInput);
+  field.appendChild(pwInput);
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'pw-toggle';
+  toggle.setAttribute('aria-label', 'Mostrar senha');
+  toggle.setAttribute('aria-pressed', 'false');
+  toggle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/><line class="pw-eye-off" x1="4" y1="20" x2="20" y2="4"/></svg>';
+  toggle.addEventListener('click', () => {
+    const showing = pwInput.type === 'text';
+    pwInput.type = showing ? 'password' : 'text';
+    toggle.setAttribute('aria-label', showing ? 'Mostrar senha' : 'Ocultar senha');
+    toggle.setAttribute('aria-pressed', String(!showing));
+    pwInput.focus();
+  });
+  field.appendChild(toggle);
+});

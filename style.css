@@ -226,3 +226,58 @@ body {
   .auth-form button:hover, .task-form button:hover,
   .auth-form button:active, .task-form button:active { transform: none; }
 }
+
+/* ==========================================================================
+   TELA DE LOGIN (nov/2026) - caderno de papelaria
+   O cartão de acesso vira um caderno aberto sobre a mesa creme: ilustração
+   de tinta (lista, caneta-tinteiro) à esquerda, formulário à direita,
+   divisória tracejada como espiral. Inclui o olho de mostrar/ocultar senha.
+   Apenas CSS/SVG; ids, textos funcionais e validação não mudam.
+   ========================================================================== */
+.auth-art { display: none; }
+@media (min-width: 761px) {
+  #authView.auth-card {
+    max-width: 780px;
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    column-gap: 36px;
+    align-items: center;
+  }
+  #authView .auth-art {
+    display: block;
+    grid-row: 1 / -1;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    padding-right: 36px;
+    border-right: 2px dashed #cfc6ab;
+  }
+  #authView .auth-art svg { width: 100%; max-width: 200px; height: auto; }
+}
+@media (max-width: 760px) {
+  #authView .auth-art { display: block; width: 128px; margin: 2px auto 16px; }
+  #authView .auth-art svg { width: 100%; height: auto; display: block; }
+}
+.pw-field { position: relative; }
+.pw-field input { width: 100%; padding-right: 52px !important; }
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 999px !important;
+  color: #8f8672;
+}
+.pw-toggle:hover { color: #c2451e; background: #f4efe0 !important; transform: translateY(-50%) !important; box-shadow: none !important; }
+.pw-toggle:active { transform: translateY(-50%) !important; }
+.pw-toggle svg { width: 20px; height: 20px; }
+.pw-toggle .pw-eye-off { display: none; }
+.pw-toggle[aria-pressed="true"] .pw-eye-off { display: block; }

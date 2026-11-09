@@ -281,3 +281,6 @@ body {
 .pw-toggle svg { width: 20px; height: 20px; }
 .pw-toggle .pw-eye-off { display: none; }
 .pw-toggle[aria-pressed="true"] .pw-eye-off { display: block; }
+.auth-form .pw-toggle{color:#6e675a!important}
+@media(min-width:761px){#authView>.auth-art{grid-column:1;grid-row:1/span 8}#authView>:not(.auth-art){grid-column:2}}
+@media(max-width:760px){#authView .auth-art{width:92px;margin-bottom:10px}.auth-card{margin-top:12px}}

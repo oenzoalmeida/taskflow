@@ -39,7 +39,7 @@ Projeto de portfólio desenvolvido para praticar autenticação, isolamento de d
 
 **Banco de dados:** PostgreSQL (Neon).
 
-**Infraestrutura:** Frontend no Firebase Hosting. Backend serverless na Vercel.
+**Infraestrutura:** interface e API na Vercel, na mesma origem. Firebase Hosting mantém o redirecionamento do endereço anterior.
 
 ## Perfis de acesso
 
@@ -91,7 +91,7 @@ Como a interface e a API ficam na mesma origem, o cookie de sessão é `HttpOnly
 
 Sem verificação de e-mail e sem recuperação de senha.
 
-Rate limit de autenticação é persistido no PostgreSQL (tabela `auth_rate_limit`), então o limite vale por banco e não por instância — no serverless ele não é multiplicado pelo número de instâncias quentes.
+Rate limit de autenticação é persistido no PostgreSQL (tabela `auth_rate_limit`), então o limite vale por banco e não por instância. No ambiente serverless ele não é multiplicado pelo número de instâncias quentes.
 
 O título de uma tarefa pode ser editado depois da criação (botão "Editar" na lista, ou `PATCH /api/tasks/:id` com `title`); título vazio ou com mais de 240 caracteres é rejeitado e a data de criação é preservada.
 
